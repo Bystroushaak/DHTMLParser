@@ -1,4 +1,4 @@
-
+import std.string;
 
 import std.stdio;
 
@@ -91,11 +91,69 @@ class HTMLParser{
 		return array;
 	}
 	
+	private bool isTag(ref string element){
+		if (element.startsWith("<") && element.endsWith(">"))
+			return true;
+		else
+			return false;
+	}
+	
+	private bool isEndTag(ref string element){
+		char last;
+		
+		if (element.startsWith("<") && element.endsWith(">")){
+			foreach(char c; element){
+				if (c == '/' && last == '<')
+					return true;
+				if (c > 32)
+					last = c;
+			}
+		}
+		
+		return false;
+	}
+	
+	private bool isNonPairTag(ref string element){
+		char last;
+		
+		if (element.startsWith("<") && element.endsWith(">")){
+			foreach(char c; element){
+				if (c == '>' && last == '/')
+					return true;
+				if (c > 32)
+					last = c;
+			}
+		}
+		
+		return false;
+	}
+	
+	private bool isComment(ref string element){
+		if (element.startsWith("<!--") && element.endsWith("-->"))
+			return true;
+		else
+			return false;
+	}
+		
 	public void parse(ref string txt){
 		string[] parts = this.raw_split(txt);
 		
-		foreach(string line; parts)
-			writeln(line);
+		foreach(string line; parts){
+			write(line, " - ");
+			if (isTag(line)){
+				write("tag");
+				
+				if (isEndTag(line))
+					write(" - endtag");
+				if (isNonPairTag(line))
+					write(" - nonpair");
+				if (isComment(line))
+					write(" - comment");
+			}else
+				write("text");
+			
+			writeln("");
+		}
 	}
 }
 
