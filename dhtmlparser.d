@@ -2,13 +2,31 @@ import std.string;
 
 import std.stdio;
 
+class HTMLParserException:Exception{
+	this(string msg){
+		super(msg);
+	}
+}
+
 class HTMLParser{
+	private string tagname;
+	private string header, footer;
+	private string[string] params;
+	private HTMLParser[] content;
+	
 	this(ref string txt){
-		parse(txt);
+		parseString(txt);
+	}
+	
+	this(string[] elements){
+		
 	}
 	
 	/**
-	 * http://kitakitsune.org/images/field_parser.png
+	 * Parse HTML from text into array filled with tags end text.
+	 * 
+	 * Source code is little bit unintutive, because it is simple parser machine.
+	 * For better understanding, look at; http://kitakitsune.org/images/field_parser.png
     */ 
 	private string[] raw_split(ref string itxt){
 		char echr;
@@ -125,6 +143,23 @@ class HTMLParser{
 			}
 		}
 		
+		string[] npt = [
+			"br",
+			"hr",
+			"img",
+			"input",
+			"link",
+			"meta",
+			"spacer",
+			"frame",
+			"base"
+		];
+		
+		foreach(string tag; npt){
+			if (tag == parseTagName(element))
+				return true;
+		}
+		
 		return false;
 	}
 	
@@ -135,27 +170,31 @@ class HTMLParser{
 			return false;
 	}
 		
-	public void parse(ref string txt){
-		string[] parts = this.raw_split(txt);
+	private string parseTagName(string element){
+		foreach(string el; element.split(" ")){
+			el = el.replace("/", "").replace("<", "").replace(">", "");
+			if (el.length > 0)
+				return el;
+		}
 		
-		foreach(string line; parts){
-			write(line, " - ");
-			if (isTag(line)){
-				write("tag");
+		throw new HTMLParserException("Tag not found!");
+	}
+	
+	public void parseString(ref string txt){
+		uint counter;
+		string tagname;
+		
+		foreach(string element; this.raw_split(txt)){
+			if (isTag(element)){
 				
-				if (isEndTag(line))
-					write(" - endtag");
-				if (isNonPairTag(line))
-					write(" - nonpair");
-				if (isComment(line))
-					write(" - comment");
-			}else
-				write("text");
-			
-			writeln("");
+			}else{
+				
+			}
 		}
 	}
 }
+
+
 
 void main(){
 	HTMLParser p = new HTMLParser("asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd");
