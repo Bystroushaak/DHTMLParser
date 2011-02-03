@@ -8,6 +8,116 @@ class HTMLParserException:Exception{
 	}
 }
 
+class HTMLElement{
+	private string element, tagname;
+	private bool istag, isendtag, iscomment, isnonpairtag;
+	
+	this(string str){
+		this.element = str;
+		
+		this.parseIsTag();
+		this.parseIsEndTag();
+		this.parseIsNonPairTag();
+		this.parseIsComment();
+		this.parseTagName();
+	}
+	
+	public bool isTag(){
+		return this.istag;
+	}
+		
+	private void parseIsTag(){
+		if (this.element.startsWith("<") && this.element.endsWith(">"))
+			this.istag = true;
+		else
+			this.istag = false;
+	}
+	
+	private bool isEndTag(){
+		return this.isendtag;
+	}
+	
+	private void parseIsEndTag(){
+		char last;
+		
+		if (this.element.startsWith("<") && this.element.endsWith(">")){
+			foreach(char c; this.element){
+				if (c == '/' && last == '<')
+					this.isendtag = true;
+				if (c > 32)
+					last = c;
+			}
+		}
+		
+		this.isendtag = false;
+	}
+	
+	//~ public bool isEndTag(ref string element, string ) 
+	
+	public bool isNonPairTag(){
+		return this.isnonpairtag;
+	}
+	
+	private void parseIsNonPairTag(){
+		char last;
+		
+		if (this.element.startsWith("<") && this.element.endsWith(">")){
+			foreach(char c; this.element){
+				if (c == '>' && last == '/')
+					this.isnonpairtag = true;
+				if (c > 32)
+					last = c;
+			}
+		}
+		
+		string[] npt = [
+			"br",
+			"hr",
+			"img",
+			"input",
+			"link",
+			"meta",
+			"spacer",
+			"frame",
+			"base"
+		];
+		
+		foreach(string tag; npt){
+			if (tag == this.tagName())
+				this.isnonpairtag = true;
+		}
+		
+		this.isnonpairtag = false;
+	}
+	
+	public bool isComment(){
+		return iscomment;
+	}
+	
+	private void parseIsComment(){
+		if (this.element.startsWith("<!--") && this.element.endsWith("-->"))
+			return this.iscomment = true;
+		else
+			return this.iscomment = false;
+	}
+		
+	public string tagName(){
+		return this.tagname;
+	}
+	
+	private void parseTagName(){
+		foreach(string el; this.element.split(" ")){
+			el = el.replace("/", "").replace("<", "").replace(">", "");
+			if (el.length > 0)
+				this.tagname = el;
+		}
+	}
+	
+	public string toString(){
+		return this.element;
+	}
+}
+
 class HTMLParser{
 	private string tagname;
 	private string header, footer;
@@ -109,87 +219,11 @@ class HTMLParser{
 		return array;
 	}
 	
-	private bool isTag(ref string element){
-		if (element.startsWith("<") && element.endsWith(">"))
-			return true;
-		else
-			return false;
-	}
-	
-	private bool isEndTag(ref string element){
-		char last;
-		
-		if (element.startsWith("<") && element.endsWith(">")){
-			foreach(char c; element){
-				if (c == '/' && last == '<')
-					return true;
-				if (c > 32)
-					last = c;
-			}
-		}
-		
-		return false;
-	}
-	
-	private bool isNonPairTag(ref string element){
-		char last;
-		
-		if (element.startsWith("<") && element.endsWith(">")){
-			foreach(char c; element){
-				if (c == '>' && last == '/')
-					return true;
-				if (c > 32)
-					last = c;
-			}
-		}
-		
-		string[] npt = [
-			"br",
-			"hr",
-			"img",
-			"input",
-			"link",
-			"meta",
-			"spacer",
-			"frame",
-			"base"
-		];
-		
-		foreach(string tag; npt){
-			if (tag == parseTagName(element))
-				return true;
-		}
-		
-		return false;
-	}
-	
-	private bool isComment(ref string element){
-		if (element.startsWith("<!--") && element.endsWith("-->"))
-			return true;
-		else
-			return false;
-	}
-		
-	private string parseTagName(string element){
-		foreach(string el; element.split(" ")){
-			el = el.replace("/", "").replace("<", "").replace(">", "");
-			if (el.length > 0)
-				return el;
-		}
-		
-		throw new HTMLParserException("Tag not found!");
-	}
-	
 	public void parseString(ref string txt){
-		uint counter;
-		string tagname;
+		HTMLElement[] istack;
 		
-		foreach(string element; this.raw_split(txt)){
-			if (isTag(element)){
-				
-			}else{
-				
-			}
+		foreach(string el; this.raw_split(txt)){
+			istack ~= new HTMLElement(el);
 		}
 	}
 }
