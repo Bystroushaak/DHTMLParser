@@ -118,6 +118,7 @@ class HTMLElement{
 	}
 }
 
+
 class HTMLParser{
 	private string tagname;
 	private string header, footer;
@@ -128,8 +129,8 @@ class HTMLParser{
 		parseString(txt);
 	}
 	
-	this(string[] elements){
-		
+	this(HTMLElement[] elements){
+		parseElements(elements);
 	}
 	
 	/**
@@ -219,17 +220,43 @@ class HTMLParser{
 		return array;
 	}
 	
-	public void parseString(ref string txt){
-		HTMLElement[] istack;
+	private void parseElements(HTMLElement[] istack){
 		
+	}
+	
+	private void parseString(ref string txt){
+		HTMLElement[] raw_stack, istack;
+		
+		// Convert array of strings to HTMLElements
 		foreach(string el; this.raw_split(txt)){
-			istack ~= new HTMLElement(el);
+			raw_stack ~= new HTMLElement(el);
 		}
+		
+		// Repair tags with comments (<HT<!-- asad -->ML> is parsed to ["<HT", "<!-- asad -->", "ML>"]
+		// and I need ["<HTML>", "<!-- asad -->"])
+		foreach(uint index, HTMLElement el; raw_stack){
+			if (el.isComment()){
+				if (index > 0 && index < raw_stack.length){
+					if (raw_stack[index - 1].toString().startsWith("<") && raw_stack[index + 1].toString().endsWith(">")){
+						istack[$ - 1] = new HTMLElement(istack[$ - 1].toString ~ raw_stack[index + 1].toString());
+						istack ~= el;
+						index += 1;
+						continue;
+					}
+				}
+			}
+			
+			istack ~= el;
+		}
+		raw_stack = null;
+		
+		this.parseElements(istack);
 	}
 }
 
 
 
 void main(){
-	HTMLParser p = new HTMLParser("asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd");
+	//~ HTMLParser p = new HTMLParser("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd<b<!--a-->r>");
+	HTMLParser q = new HTMLParser("<!--a-->");
 }
