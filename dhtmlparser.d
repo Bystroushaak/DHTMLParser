@@ -22,10 +22,6 @@ class HTMLElement{
 		this.parseTagName();
 	}
 	
-	public bool isTag(){
-		return this.istag;
-	}
-		
 	private void parseIsTag(){
 		if (this.element.startsWith("<") && this.element.endsWith(">"))
 			this.istag = true;
@@ -33,12 +29,9 @@ class HTMLElement{
 			this.istag = false;
 	}
 	
-	private bool isEndTag(){
-		return this.isendtag;
-	}
-	
 	private void parseIsEndTag(){
 		char last;
+		this.isendtag = false;
 		
 		if (this.element.startsWith("<") && this.element.endsWith(">")){
 			foreach(char c; this.element){
@@ -48,19 +41,13 @@ class HTMLElement{
 					last = c;
 			}
 		}
-		
-		this.isendtag = false;
-	}
-	
-	//~ public bool isEndTag(ref string element, string ) 
-	
-	public bool isNonPairTag(){
-		return this.isnonpairtag;
 	}
 	
 	private void parseIsNonPairTag(){
 		char last;
+		this.isnonpairtag = false;
 		
+		// Tags endings with /> are nonpair
 		if (this.element.startsWith("<") && this.element.endsWith(">")){
 			foreach(char c; this.element){
 				if (c == '>' && last == '/')
@@ -70,6 +57,7 @@ class HTMLElement{
 			}
 		}
 		
+		// Nonpair tags
 		string[] npt = [
 			"br",
 			"hr",
@@ -82,27 +70,18 @@ class HTMLElement{
 			"base"
 		];
 		
+		// Check listed nonpair tags
 		foreach(string tag; npt){
 			if (tag == this.tagName())
 				this.isnonpairtag = true;
 		}
-		
-		this.isnonpairtag = false;
-	}
-	
-	public bool isComment(){
-		return iscomment;
 	}
 	
 	private void parseIsComment(){
 		if (this.element.startsWith("<!--") && this.element.endsWith("-->"))
-			return this.iscomment = true;
+			this.iscomment = true;
 		else
-			return this.iscomment = false;
-	}
-		
-	public string tagName(){
-		return this.tagname;
+			this.iscomment = false;
 	}
 	
 	private void parseTagName(){
@@ -113,8 +92,42 @@ class HTMLElement{
 		}
 	}
 	
+	public bool isTag(){
+		return this.istag;
+	}
+		
+	public bool isOpeningTag(){
+		if (this.isTag() && !this.isComment() && !this.isEndTag() && !this.isNonPairTag())
+			return true;
+		else
+			return false;
+	}
+		
+	public bool isEndTag(){
+		return this.isendtag;
+	}
+	
+	public bool isEndTag(string tagname){
+		if (tagname == this.tagname)
+			return true;
+		else
+			return false;
+	} 
+	
+	public bool isNonPairTag(){
+		return this.isnonpairtag;
+	}
+	
+	public bool isComment(){
+		return iscomment;
+	}
+	
 	public string toString(){
 		return this.element;
+	}
+	
+	public string getTagName(){
+		return this.tagname;
 	}
 }
 
@@ -221,6 +234,7 @@ class HTMLParser{
 	}
 	
 	private void parseElements(HTMLElement[] istack){
+		
 		
 	}
 	
