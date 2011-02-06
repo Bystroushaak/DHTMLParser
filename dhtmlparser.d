@@ -11,6 +11,8 @@ class HTMLParserException:Exception{
 class HTMLElement{
 	private string element, tagname;
 	private bool istag, isendtag, iscomment, isnonpairtag;
+	private HTMLElement[] childs;
+	private HTMLElement endtag;
 	
 	this(string str){
 		this.element = str;
@@ -72,7 +74,7 @@ class HTMLElement{
 		
 		// Check listed nonpair tags
 		foreach(string tag; npt){
-			if (tag == this.tagName())
+			if (tag == this.getTagName())
 				this.isnonpairtag = true;
 		}
 	}
@@ -90,6 +92,10 @@ class HTMLElement{
 			if (el.length > 0)
 				this.tagname = el;
 		}
+	}
+	
+	public void addChild(HTMLElement child){
+		this.childs ~= child;
 	}
 	
 	public bool isTag(){
@@ -233,9 +239,16 @@ class HTMLParser{
 		return array;
 	}
 	
-	private void parseElements(HTMLElement[] istack){
+	private void parseElements(HTMLElement[] elements){
+		HTMLElement superelement = new HTMLElement("");
 		
-		
+		foreach(el; elements){
+			
+			else{
+				superelement.addChild(el);
+			}
+				
+		}
 	}
 	
 	private void parseString(ref string txt){
