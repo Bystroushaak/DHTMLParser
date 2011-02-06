@@ -257,6 +257,6 @@ class HTMLParser{
 
 
 void main(){
-	//~ HTMLParser p = new HTMLParser("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd<b<!--a-->r>");
-	HTMLParser q = new HTMLParser("<!--a-->");
+	HTMLParser p = new HTMLParser("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd<b<!--a-->r>");
+	//~ HTMLParser q = new HTMLParser("<!--a-->");
 }
