@@ -11,8 +11,9 @@ class HTMLParserException:Exception{
 class HTMLElement{
 	private string element, tagname;
 	private bool istag, isendtag, iscomment, isnonpairtag;
-	private HTMLElement[] childs;
-	private HTMLElement endtag;
+	public HTMLElement[] childs;
+	public HTMLElement endtag;
+	public HTMLElement nexttag;
 	
 	this(string str){
 		this.element = str;
@@ -125,7 +126,7 @@ class HTMLElement{
 	}
 	
 	public bool isComment(){
-		return iscomment;
+		return this.iscomment;
 	}
 	
 	public string toString(){
@@ -139,26 +140,13 @@ class HTMLElement{
 
 
 class HTMLParser{
-	private string tagname;
-	private string header, footer;
-	private string[string] params;
-	private HTMLParser[] content;
-	
-	this(ref string txt){
-		parseString(txt);
-	}
-	
-	this(HTMLElement[] elements){
-		parseElements(elements);
-	}
-	
 	/**
 	 * Parse HTML from text into array filled with tags end text.
 	 * 
 	 * Source code is little bit unintutive, because it is simple parser machine.
 	 * For better understanding, look at; http://kitakitsune.org/images/field_parser.png
     */ 
-	private string[] raw_split(ref string itxt){
+	static private string[] raw_split(ref string itxt){
 		char echr;
 		char[4] buff;
 		string content;
@@ -239,23 +227,11 @@ class HTMLParser{
 		return array;
 	}
 	
-	private void parseElements(HTMLElement[] elements){
-		HTMLElement superelement = new HTMLElement("");
-		
-		foreach(el; elements){
-			
-			else{
-				superelement.addChild(el);
-			}
-				
-		}
-	}
-	
-	private void parseString(ref string txt){
-		HTMLElement[] raw_stack, istack;
+	public static HTMLElement[] parseString(string txt){
+		HTMLElement[] istack, ostack, raw_stack;
 		
 		// Convert array of strings to HTMLElements
-		foreach(string el; this.raw_split(txt)){
+		foreach(string el; raw_split(txt)){
 			raw_stack ~= new HTMLElement(el);
 		}
 		
@@ -275,15 +251,20 @@ class HTMLParser{
 			
 			istack ~= el;
 		}
-		raw_stack = null;
 		
-		this.parseElements(istack);
+		raw_stack = null;
+		foreach(el; istack){
+		}
+		
+		return ostack;
 	}
 }
 
 
 
 void main(){
-	HTMLParser p = new HTMLParser("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd<b<!--a-->r>");
-	//~ HTMLParser q = new HTMLParser("<!--a-->");
+	HTMLElement[] dom = HTMLParser.parseString("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd<b<!--a-->r>");
+// 	HTMLParser q = new HTMLParser("<!--a-->");
+
+	writeln(dom);
 }
