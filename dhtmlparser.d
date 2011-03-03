@@ -1,9 +1,12 @@
 /**
- *
+ * dhtmlparser.d v0.1.0 (03.03.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+ * 
  * TODO:
 	 * přidělat parsování argumentů tagu
 	 * pretiffy by měla replacovat "    " za " ", nebrat v ůvahu řádky plné mezer (nikoli prázdné!)
 	 * zapouzdřit HTMLElement
+	 * přepsat pretiffy tak, aby vytvářela pole stringů, které pak vrátí jako jeden string namísto writeln..
+	 * promyslet a přidat vyhledávací fce
 */ 
 
 import std.string;
@@ -272,7 +275,7 @@ class HTMLParser{
 	}
 
 	/**
-	 * Element at first index is considered as opening tag.
+	 * Go trought istack and search endtag. Element at first index is considered as opening tag.
 	 *
 	 * Returns: index of end tag or 0 if not found.
 	*/ 
@@ -299,6 +302,9 @@ class HTMLParser{
 		return 0;
 	}
 
+	/**
+	 * Recursively go trought element array and create DOM.
+    */ 
 	private static HTMLElement[] parseDOM(HTMLElement[] istack){
 		uint end_tag_index;
 		HTMLElement[] ostack;
@@ -323,7 +329,7 @@ class HTMLParser{
 		return ostack;
 	}
 
-	private static void pretiffy(HTMLElement[] istack, string separator = "  ", uint depth = 0){
+	public static void pretiffy(HTMLElement[] istack, string separator = "  ", uint depth = 0){
 		foreach(el; istack){
 			for (uint i = 0; i < depth; i++)
 				write(separator);
@@ -335,23 +341,15 @@ class HTMLParser{
 		}
 	}
 	
-	public static HTMLElement[] parseString(string txt){
-		HTMLElement[] istack, ostack, raw_stack;
+	public static HTMLElement[] parseString(ref string txt){
+		HTMLElement[] istack;
 		
 		// Convert array of strings to HTMLElements
 		foreach(string el; raw_split(txt)){
-			raw_stack ~= new HTMLElement(el);
+			istack ~= new HTMLElement(el);
 		}
 
-		// Repair tags
-		istack = repairTags(raw_stack);
-		
-		// Create DOM
-		ostack = parseDOM(istack);
-
-		pretiffy(ostack);
-		
-		return ostack;
+		return parseDOM(repairTags(istack));
 	}
 }
 
@@ -373,7 +371,6 @@ void main(){
 		"</html>" ~
 		"</html>"
 	);
-// 	HTMLParser q = new HTMLParser("<!--a-->");
 
-// 	writeln(dom);
+	HTMLParser.pretiffy(dom);
 }
