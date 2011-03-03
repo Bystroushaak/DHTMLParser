@@ -2,6 +2,8 @@
  *
  * TODO:
 	 * přidělat parsování argumentů tagu
+	 * pretiffy by měla replacovat "    " za " ", nebrat v ůvahu řádky plné mezer (nikoli prázdné!)
+	 * zapouzdřit HTMLElement
 */ 
 
 import std.string;
@@ -18,7 +20,7 @@ class HTMLElement{
 	private string element, tagname;
 	private bool istag, isendtag, iscomment, isnonpairtag;
 	public HTMLElement[] childs;
-	public HTMLElement endtag;
+	public HTMLElement endtag, openertag;
 	public HTMLElement nexttag;
 	
 	this(string str){
@@ -307,16 +309,30 @@ class HTMLParser{
 			if (!el.isNonPairTag && end_tag_index == 0 && !el.isEndTag())
 				el.setIsNonPairTag(true);
 
-			if (end_tag_index != 0){ // + Index!
-				el.childs = parseDOM(istack[index + 1 .. end_tag_index + index - 1]); // ošetřit!!
-				el.endtag = istack[end_tag_index + index];
+			if (end_tag_index != 0){
+				el.childs = parseDOM(istack[index + 1 .. end_tag_index + index]);
+				el.endtag = istack[end_tag_index + index]; // Rreference to endtag
+				el.endtag.openertag = el; // Reference to openertag
 				ostack ~= el;
+				ostack ~= el.endtag;
 				index = end_tag_index + index;
 			}else
 				ostack ~= el;
 		}
 
 		return ostack;
+	}
+
+	private static void pretiffy(HTMLElement[] istack, string separator = "  ", uint depth = 0){
+		foreach(el; istack){
+			for (uint i = 0; i < depth; i++)
+				write(separator);
+
+			writeln(el);
+			
+			if (el.childs.length > 0)
+				pretiffy(el.childs, separator, depth + 1);
+		}
 	}
 	
 	public static HTMLElement[] parseString(string txt){
@@ -333,9 +349,7 @@ class HTMLParser{
 		// Create DOM
 		ostack = parseDOM(istack);
 
-		foreach(el; ostack){
-			writeln(el, "\tchilds.length: ", el.childs.length);
-		}
+		pretiffy(ostack);
 		
 		return ostack;
 	}
@@ -344,7 +358,21 @@ class HTMLParser{
 
 
 void main(){
-	HTMLElement[] dom = HTMLParser.parseString("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br /><div>obsah divu<div>obsah zanoreneho divu</div></div>řádek2</body></HTML>asd<b<!--a-->r>");
+	HTMLElement[] dom = HTMLParser.parseString(
+		"<doctype sracky...>" ~
+		"<HTML>" ~
+		"<head <!-- Doplnit meta tagy!--> >" ~
+		"<title>Testovaci polygon..</title>" ~
+		"</head>" ~
+		"<body bgcolor='black'>" ~
+		"<h1>Polygon..</h1>" ~
+		"Nejaky pekny odstavecek.." ~
+		"<!-- zakomentovany text.. >>><<<< \" -->"
+		"</body>" ~
+		"<html>" ~
+		"</html>" ~
+		"</html>"
+	);
 // 	HTMLParser q = new HTMLParser("<!--a-->");
 
 // 	writeln(dom);
