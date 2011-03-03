@@ -95,10 +95,6 @@ class HTMLElement{
 		}
 	}
 	
-	public void addChild(HTMLElement child){
-		this.childs ~= child;
-	}
-	
 	public bool isTag(){
 		return this.istag;
 	}
@@ -113,10 +109,16 @@ class HTMLElement{
 	public bool isEndTag(){
 		return this.isendtag;
 	}
-	
-	public bool isEndTag(string tagname){
-		if (tagname == this.tagname)
-			return true;
+
+	/**
+	 * Returns true, if this element is endtag to opener.
+	*/
+	public bool isEndTagTo(HTMLElement opener){
+		if (this.isendtag && opener.isOpeningTag())
+			if (this.tagname == opener.getTagName())
+				return true;
+			else
+				return false;
 		else
 			return false;
 	} 
@@ -128,7 +130,7 @@ class HTMLElement{
 	public bool isComment(){
 		return this.iscomment;
 	}
-	
+
 	public string toString(){
 		return this.element;
 	}
@@ -146,7 +148,7 @@ class HTMLParser{
 	 * Source code is little bit unintutive, because it is simple parser machine.
 	 * For better understanding, look at; http://kitakitsune.org/images/field_parser.png
     */ 
-	static private string[] raw_split(ref string itxt){
+	private static string[] raw_split(ref string itxt){
 		char echr;
 		char[4] buff;
 		string content;
@@ -226,6 +228,31 @@ class HTMLParser{
 		
 		return array;
 	}
+
+	/**
+	 * Repair tags with comments (<HT<!-- asad -->ML> is parsed to ["<HT", "<!-- asad -->", "ML>"]
+	 * and I need ["<HTML>", "<!-- asad -->"])
+	*/ 
+	private static HTMLElement[] repairTags(HTMLElement[] raw_input){
+		HTMLElement[] ostack;
+		
+		foreach(uint index, HTMLElement el; raw_input){
+			if (el.isComment()){
+				if (index > 0 && index < raw_input.length){
+					if (raw_input[index - 1].toString().startsWith("<") && raw_input[index + 1].toString().endsWith(">")){
+						ostack[$ - 1] = new HTMLElement(ostack[$ - 1].toString ~ raw_input[index + 1].toString());
+						ostack ~= el;
+						index += 1;
+						continue;
+					}
+				}
+			}
+
+			ostack ~= el;
+		}
+
+		return ostack;
+	}
 	
 	public static HTMLElement[] parseString(string txt){
 		HTMLElement[] istack, ostack, raw_stack;
@@ -235,25 +262,8 @@ class HTMLParser{
 			raw_stack ~= new HTMLElement(el);
 		}
 		
-		// Repair tags with comments (<HT<!-- asad -->ML> is parsed to ["<HT", "<!-- asad -->", "ML>"]
-		// and I need ["<HTML>", "<!-- asad -->"])
-		foreach(uint index, HTMLElement el; raw_stack){
-			if (el.isComment()){
-				if (index > 0 && index < raw_stack.length){
-					if (raw_stack[index - 1].toString().startsWith("<") && raw_stack[index + 1].toString().endsWith(">")){
-						istack[$ - 1] = new HTMLElement(istack[$ - 1].toString ~ raw_stack[index + 1].toString());
-						istack ~= el;
-						index += 1;
-						continue;
-					}
-				}
-			}
-			
-			istack ~= el;
-		}
-		
-		raw_stack = null;
-		foreach(el; istack){
+		foreach(HTMLElement el; repairTags(raw_stack)){
+			writeln(el);
 		}
 		
 		return ostack;
@@ -266,5 +276,5 @@ void main(){
 	HTMLElement[] dom = HTMLParser.parseString("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd<b<!--a-->r>");
 // 	HTMLParser q = new HTMLParser("<!--a-->");
 
-	writeln(dom);
+// 	writeln(dom);
 }
