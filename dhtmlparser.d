@@ -298,7 +298,25 @@ class HTMLParser{
 	}
 
 	private static HTMLElement[] parseDOM(HTMLElement[] istack){
+		uint end_tag_index;
+		HTMLElement[] ostack;
 		
+		foreach(uint index, HTMLElement el; istack){
+			end_tag_index = indexOfEndTag(istack[index .. $]); // Check if this is pair tag
+
+			if (!el.isNonPairTag && end_tag_index == 0 && !el.isEndTag())
+				el.setIsNonPairTag(true);
+
+			if (end_tag_index != 0){ // + Index!
+				el.childs = parseDOM(istack[index + 1 .. end_tag_index + index - 1]); // ošetřit!!
+				el.endtag = istack[end_tag_index + index];
+				ostack ~= el;
+				index = end_tag_index + index;
+			}else
+				ostack ~= el;
+		}
+
+		return ostack;
 	}
 	
 	public static HTMLElement[] parseString(string txt){
@@ -309,20 +327,14 @@ class HTMLParser{
 			raw_stack ~= new HTMLElement(el);
 		}
 
-		// Create DOM
-		uint end_tag_index;
-		raw_stack = repairTags(raw_stack);
+		// Repair tags
+		istack = repairTags(raw_stack);
 		
-		foreach(uint index, HTMLElement el; raw_stack){
-			end_tag_index = indexOfEndTag(raw_stack[index .. $]); // Check if this is pair tag
+		// Create DOM
+		ostack = parseDOM(istack);
 
-			if (end_tag_index == 0 && !el.isEndTag())
-				el.setIsNonPairTag(true);
-
-			if (end_tag_index != 0)
-				writeln(el, " Yes - ", end_tag_index + index);
-			else
-				;
+		foreach(el; ostack){
+			writeln(el, "\tchilds.length: ", el.childs.length);
 		}
 		
 		return ostack;
