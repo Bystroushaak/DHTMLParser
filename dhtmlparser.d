@@ -1,3 +1,9 @@
+/**
+ *
+ * TODO:
+	 * přidělat parsování argumentů tagu
+*/ 
+
 import std.string;
 
 import std.stdio;
@@ -22,7 +28,10 @@ class HTMLElement{
 		this.parseIsEndTag();
 		this.parseIsNonPairTag();
 		this.parseIsComment();
-		this.parseTagName();
+		if (!this.istag || this.iscomment)
+			this.tagname = element;
+		else
+			this.parseTagName();
 	}
 	
 	private void parseIsTag(){
@@ -90,8 +99,10 @@ class HTMLElement{
 	private void parseTagName(){
 		foreach(string el; this.element.split(" ")){
 			el = el.replace("/", "").replace("<", "").replace(">", "");
-			if (el.length > 0)
+			if (el.length > 0){
 				this.tagname = el;
+				break;
+			}
 		}
 	}
 	
@@ -115,7 +126,7 @@ class HTMLElement{
 	*/
 	public bool isEndTagTo(HTMLElement opener){
 		if (this.isendtag && opener.isOpeningTag())
-			if (this.tagname == opener.getTagName())
+			if (this.tagname.tolower() == opener.getTagName().tolower())
 				return true;
 			else
 				return false;
@@ -125,6 +136,10 @@ class HTMLElement{
 	
 	public bool isNonPairTag(){
 		return this.isnonpairtag;
+	}
+
+	public void setIsNonPairTag(bool isnonpairtag){
+		this.isnonpairtag = isnonpairtag;
 	}
 	
 	public bool isComment(){
@@ -148,7 +163,7 @@ class HTMLParser{
 	 * Source code is little bit unintutive, because it is simple parser machine.
 	 * For better understanding, look at; http://kitakitsune.org/images/field_parser.png
     */ 
-	private static string[] raw_split(ref string itxt){
+	private static string[] raw_split(string itxt){
 		char echr;
 		char[4] buff;
 		string content;
@@ -240,7 +255,7 @@ class HTMLParser{
 			if (el.isComment()){
 				if (index > 0 && index < raw_input.length){
 					if (raw_input[index - 1].toString().startsWith("<") && raw_input[index + 1].toString().endsWith(">")){
-						ostack[$ - 1] = new HTMLElement(ostack[$ - 1].toString ~ raw_input[index + 1].toString());
+						ostack[$ - 1] = new HTMLElement(ostack[$ - 1].toString() ~ raw_input[index + 1].toString());
 						ostack ~= el;
 						index += 1;
 						continue;
@@ -253,6 +268,38 @@ class HTMLParser{
 
 		return ostack;
 	}
+
+	/**
+	 * Element at first index is considered as opening tag.
+	 *
+	 * Returns: index of end tag or 0 if not found.
+	*/ 
+	private static uint indexOfEndTag(HTMLElement[] istack){
+		if (istack.length <= 0)
+			return 0;
+
+		if (!istack[0].isOpeningTag())
+			return 0;
+
+		HTMLElement opener = istack[0];
+		uint cnt = 0;
+		
+		foreach(uint index, HTMLElement el; istack[1 .. $]){
+			if (el.isOpeningTag() && (el.getTagName().tolower() == opener.getTagName().tolower()))
+				cnt++;
+			else if (el.isEndTagTo(opener))
+				if (cnt == 0)
+					return index + 1;
+				else
+					cnt--;
+		}
+
+		return 0;
+	}
+
+	private static HTMLElement[] parseDOM(HTMLElement[] istack){
+		
+	}
 	
 	public static HTMLElement[] parseString(string txt){
 		HTMLElement[] istack, ostack, raw_stack;
@@ -261,9 +308,21 @@ class HTMLParser{
 		foreach(string el; raw_split(txt)){
 			raw_stack ~= new HTMLElement(el);
 		}
+
+		// Create DOM
+		uint end_tag_index;
+		raw_stack = repairTags(raw_stack);
 		
-		foreach(HTMLElement el; repairTags(raw_stack)){
-			writeln(el);
+		foreach(uint index, HTMLElement el; raw_stack){
+			end_tag_index = indexOfEndTag(raw_stack[index .. $]); // Check if this is pair tag
+
+			if (end_tag_index == 0 && !el.isEndTag())
+				el.setIsNonPairTag(true);
+
+			if (end_tag_index != 0)
+				writeln(el, " Yes - ", end_tag_index + index);
+			else
+				;
 		}
 		
 		return ostack;
@@ -273,7 +332,7 @@ class HTMLParser{
 
 
 void main(){
-	HTMLElement[] dom = HTMLParser.parseString("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br />řádek2</body></HTML>asd<b<!--a-->r>");
+	HTMLElement[] dom = HTMLParser.parseString("<h<!--a-->r>asd<HTML><head type= 'xe>'>hlava</he<!-- komen>>tar-->ad><body>tělo:<br>řádek1<!-- asd --><br /><div>obsah divu<div>obsah zanoreneho divu</div></div>řádek2</body></HTML>asd<b<!--a-->r>");
 // 	HTMLParser q = new HTMLParser("<!--a-->");
 
 // 	writeln(dom);
