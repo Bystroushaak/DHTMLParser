@@ -51,7 +51,7 @@ class HTMLElement{
 		if (!this.isTag() || this.isComment() || this.isNonPairTag() || this.childs.length <= 0)
 			return null;
 		
-		
+		return null;
 	}
 	
 	/***************************************************************************
@@ -143,27 +143,18 @@ class HTMLElement{
 		
 		string[] tmp = params.split("=");
 		
-		// Len must be even-numbered
-		uint tmp_len;
-		if ((tmp.length % 2) == 0)
-			tmp_len = tmp.length;
-		else if ((tmp.length %2) == 1 && tmp.length > 1)
-			tmp_len = tmp.length - 1;
-		else
-			return;
-		
-		// Parse parameters (it isnt so simple as it could look..)
-		uint li; // last index
-		string value, key = tmp[0];
-		for(uint i = 1; i <= tmp_len - 1; i++){
-			li = tmp[i].lastIndexOf(" ");
-			li = (li < tmp[i].lastIndexOf("'") ? li : tmp[i].lastIndexOf("'"));
-			li = (li < tmp[i].lastIndexOf("\"") ? li : tmp[i].lastIndexOf("\""));
-			
-			this.params[key] = tmp[i][0 .. li + 1];
-			key = tmp[i][li + 1 .. $];
-		}
-		this.params[key] = tmp[$ - 1];
+		// Parse parameters (it isn't so simple how it could look..)
+			uint li; // last index
+			string value, key = tmp[0];
+			for(uint i = 1; i < tmp.length - 1; i++){
+				li = tmp[i].lastIndexOf(" ");
+				li = (li < tmp[i].lastIndexOf("'") ? li : tmp[i].lastIndexOf("'"));
+				li = (li < tmp[i].lastIndexOf("\"") ? li : tmp[i].lastIndexOf("\""));
+				
+				this.params[key] = tmp[i][0 .. li + 1];
+				key = tmp[i][li + 1 .. $];
+			}
+			this.params[key] = tmp[$ - 1];
 		
 		// Remove craps from parameters
 		foreach(pkey, pvalue; this.params){
@@ -409,7 +400,7 @@ public void pretiffy(HTMLElement[] istack, string separator = "  ", uint depth =
 		for (uint i = 0; i < depth; i++)
 			write(separator);
 
-		writeln(el);
+		writeln(el, " -> ", el.params);
 		
 		if (el.childs.length > 0)
 			pretiffy(el.childs, separator, depth + 1);
@@ -433,7 +424,7 @@ void main(){
 	HTMLElement[] dom = parseString(
 		"<doctype sracky...>" ~
 		"<HTML>" ~
-		"<head <!-- Doplnit meta tagy!--> >" ~
+		"<head <!-- Doplnit meta tagy!--> parametr_hlavy=\"hlava..\">" ~
 		"<title>Testovaci polygon..</title>" ~
 		"</head>" ~
 		"<body bgcolor='black'asd=bsd>" ~
