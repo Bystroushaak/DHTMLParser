@@ -2,6 +2,7 @@
  * dhtmlparser.d v0.1.0 (03.03.2011) by Bystroushaak (bystrousak@kitakitsune.org)
  * 
  * TODO:
+	 * ukladat informace o typu parametru, nebo provadet nejaky nahrazovani \\, \", \'
 	 * pretiffy by měla replacovat "    " za " ", nebrat v ůvahu řádky plné mezer (nikoli prázdné!)
 	 * zapouzdřit HTMLElement
 	 * přepsat pretiffy tak, aby vytvářela pole stringů, které pak vrátí jako jeden string namísto writeln..
@@ -11,6 +12,7 @@
 */ 
 
 import std.string;
+import std.array;
 
 import std.stdio;
 
@@ -21,6 +23,7 @@ class HTMLParserException:Exception{
 }
 
 class HTMLElement{
+	private char params_type;
 	private string element, tagname;
 	private bool istag, isendtag, iscomment, isnonpairtag;
 	
@@ -46,12 +49,31 @@ class HTMLElement{
 		if (this.isOpeningTag())
 			this.parseParams();
 	}
-	
+
+	/***************************************************************************
+	 * Finders *****************************************************************
+	 **************************************************************************/
+
+	// dopsat vyhledavani podle argumentu, findAll
 	public HTMLElement[] find(string tag_name, string[string] tag_arguments = null){
-		if (!this.isTag() || this.isComment() || this.isNonPairTag() || this.childs.length <= 0)
+		HTMLElement[] output;
+
+		if (this.isComment() || this.isNonPairTag() || this.isEndTag())
 			return null;
+
+		if (this.tagname == tag_name){
+			return output ~ this;
+		}
+			
+		HTMLElement tmp[];
+		foreach(el; this.childs){
+			tmp = el.find(tag_name, tag_arguments);
+
+			if (tmp.length > 0)
+				output ~= tmp;
+		}
 		
-		return null;
+		return output;
 	}
 	
 	/***************************************************************************
@@ -167,6 +189,19 @@ class HTMLElement{
 	//* /Parsers ***************************************************************
 	
 	/***************************************************************************
+	 * Generators **************************************************************
+	 **************************************************************************/ 
+	
+// 	private void generateToString(){
+// 		string element = "<" ~ this.tagname;
+// 		
+// 		if (this.params > 0)
+// 			foreach(key, val; this.params)
+// 	}
+	
+	//* /Generators ************************************************************
+	
+	/***************************************************************************
 	 * Getters *****************************************************************
 	 **************************************************************************/ 
 	
@@ -224,6 +259,7 @@ class HTMLElement{
 		this.endtag = null;
 		this.childs = null;
 	}
+	
 	//* /Setters ***************************************************************
 }
 
@@ -400,14 +436,14 @@ public void pretiffy(HTMLElement[] istack, string separator = "  ", uint depth =
 		for (uint i = 0; i < depth; i++)
 			write(separator);
 
-		writeln(el, " -> ", el.params);
+		writeln(el, " -> \"", el.getTagName(), "\"");
 		
 		if (el.childs.length > 0)
 			pretiffy(el.childs, separator, depth + 1);
 	}
 }
 	
-public static HTMLElement[] parseString(ref string txt){
+public static HTMLElement parseString(ref string txt){
 	HTMLElement[] istack;
 	
 	// Convert array of strings to HTMLElements
@@ -415,14 +451,17 @@ public static HTMLElement[] parseString(ref string txt){
 		istack ~= new HTMLElement(el);
 	}
 
-	return parseDOM(repairTags(istack));
+	HTMLElement container = new HTMLElement("");
+	container.childs ~= parseDOM(repairTags(istack));
+	return container;
 }
 
 
 
 void main(){
-	HTMLElement[] dom = parseString(
-		"<doctype sracky...>" ~
+	HTMLElement dom = parseString(
+		"<?xml syntax?>" ~
+		"<doctype sracky=asd>" ~
 		"<HTML>" ~
 		"<head <!-- Doplnit meta tagy!--> parametr_hlavy=\"hlava..\">" ~
 		"<title>Testovaci polygon..</title>" ~
@@ -437,5 +476,9 @@ void main(){
 		"</html>"
 	);
 
-	pretiffy(dom);
+	pretiffy(dom.childs);
+
+	writeln("\n---\n");
+
+	writeln(dom.find("head"));
 }
