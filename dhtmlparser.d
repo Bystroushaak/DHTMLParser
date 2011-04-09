@@ -1,14 +1,13 @@
 /**
- * dhtmlparser.d v0.1.0 (03.03.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+ * dhtmlparser.d v0.2.0 (09.04.2011) by Bystroushaak (bystrousak@kitakitsune.org)
  * 
  * TODO:
 	 * ukladat informace o typu parametru, nebo provadet nejaky nahrazovani \\, \", \'
 	 * pretiffy by měla replacovat "    " za " ", nebrat v ůvahu řádky plné mezer (nikoli prázdné!)
 	 * zapouzdřit HTMLElement
-	 * přepsat pretiffy tak, aby vytvářela pole stringů, které pak vrátí jako jeden string namísto writeln..
 	 * promyslet a přidat vyhledávací a porovnávací metody, nějaký dotazovač
 	 * přidat možnost vyhledávání podle vlastní fce..
-	 * přidělat transformační fce - setIsComment
+	 * přidělat transformační fce - setIsComment, která umožní zakomentovávat a odkomentovávat jednotlivé elementy
 */ 
 
 import std.string;
@@ -189,19 +188,6 @@ class HTMLElement{
 	//* /Parsers ***************************************************************
 	
 	/***************************************************************************
-	 * Generators **************************************************************
-	 **************************************************************************/ 
-	
-// 	private void generateToString(){
-// 		string element = "<" ~ this.tagname;
-// 		
-// 		if (this.params > 0)
-// 			foreach(key, val; this.params)
-// 	}
-	
-	//* /Generators ************************************************************
-	
-	/***************************************************************************
 	 * Getters *****************************************************************
 	 **************************************************************************/ 
 	
@@ -239,6 +225,10 @@ class HTMLElement{
 	
 	public bool isComment(){
 		return this.iscomment;
+	}
+	
+	public string toString(){
+		return this.pretiffy();
 	}
 
 	public string tagToString(){
