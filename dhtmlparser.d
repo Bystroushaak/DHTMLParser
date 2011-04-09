@@ -248,6 +248,39 @@ class HTMLElement{
 	public string getTagName(){
 		return this.tagname;
 	}
+	
+	public string pretiffy(uint depth = 0, string separator = "  "){
+		string output;
+		
+		if (this.element != ""){
+			output ~= this.toString() ~ "\n";
+			depth = 1;
+		}
+		
+		if (this.childs !is null)
+			output ~= pretiffy(this.childs, depth);
+		
+		if (this.endtag !is null)
+			output ~= this.endtag.toString() ~ "\n";
+		
+		return output;
+	}
+	
+	public string pretiffy(HTMLElement[] istack, uint depth = 0, string separator = "  "){
+		string output;
+		
+		foreach(el; istack){
+			for (uint i = 0; i < depth; i++)
+				output ~= separator;
+			
+			output ~= el.toString() ~ "\n";
+
+			if (el.childs.length > 0)
+				output ~= pretiffy(el.childs, depth + 1, separator);
+		}
+		
+		return output;
+	}
 	//* /Getters ***************************************************************
 	
 	/***************************************************************************
@@ -431,18 +464,6 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 	return ostack;
 }
 
-public void pretiffy(HTMLElement[] istack, string separator = "  ", uint depth = 0){
-	foreach(el; istack){
-		for (uint i = 0; i < depth; i++)
-			write(separator);
-
-		writeln(el, " -> \"", el.getTagName(), "\"");
-		
-		if (el.childs.length > 0)
-			pretiffy(el.childs, separator, depth + 1);
-	}
-}
-	
 public static HTMLElement parseString(ref string txt){
 	HTMLElement[] istack;
 	
@@ -454,6 +475,10 @@ public static HTMLElement parseString(ref string txt){
 	HTMLElement container = new HTMLElement("");
 	container.childs ~= parseDOM(repairTags(istack));
 	return container;
+}
+
+public string unescape(string str, char c){
+    return str;
 }
 
 
@@ -476,9 +501,11 @@ void main(){
 		"</html>"
 	);
 
-	pretiffy(dom.childs);
+	writeln(dom.pretiffy());
 
-	writeln("\n---\n");
+	writeln("---\n");
 
 	writeln(dom.find("head"));
+    
+    writeln(unescape("<head <!-- Doplnit meta tagy!--> parametr_hlavy=\"hlava..\">", '"'));
 }
