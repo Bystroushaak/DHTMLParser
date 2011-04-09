@@ -241,7 +241,7 @@ class HTMLElement{
 		return this.iscomment;
 	}
 
-	public string toString(){
+	public string tagToString(){
 		return this.element;
 	}
 	
@@ -253,7 +253,7 @@ class HTMLElement{
 		string output;
 		
 		if (this.element != ""){
-			output ~= this.toString() ~ "\n";
+			output ~= this.tagToString() ~ "\n";
 			depth = 1;
 		}
 		
@@ -261,7 +261,7 @@ class HTMLElement{
 			output ~= pretiffy(this.childs, depth);
 		
 		if (this.endtag !is null)
-			output ~= this.endtag.toString() ~ "\n";
+			output ~= this.endtag.tagToString() ~ "\n";
 		
 		return output;
 	}
@@ -273,7 +273,7 @@ class HTMLElement{
 			for (uint i = 0; i < depth; i++)
 				output ~= separator;
 			
-			output ~= el.toString() ~ "\n";
+			output ~= el.tagToString() ~ "\n";
 
 			if (el.childs.length > 0)
 				output ~= pretiffy(el.childs, depth + 1, separator);
@@ -394,8 +394,8 @@ private HTMLElement[] repairTags(HTMLElement[] raw_input){
 	foreach(uint index, HTMLElement el; raw_input){
 		if (el.isComment()){
 			if (index > 0 && index < raw_input.length){
-				if (raw_input[index - 1].toString().startsWith("<") && raw_input[index + 1].toString().endsWith(">")){
-					ostack[$ - 1] = new HTMLElement(ostack[$ - 1].toString() ~ raw_input[index + 1].toString());
+				if (raw_input[index - 1].tagToString().startsWith("<") && raw_input[index + 1].tagToString().endsWith(">")){
+					ostack[$ - 1] = new HTMLElement(ostack[$ - 1].tagToString() ~ raw_input[index + 1].tagToString());
 					ostack ~= el;
 					index += 1;
 					continue;
@@ -505,7 +505,7 @@ void main(){
 
 	writeln("---\n");
 
-	writeln(dom.find("head"));
+	writeln(dom.find("head")[0].pretiffy());
     
-    writeln(unescape("<head <!-- Doplnit meta tagy!--> parametr_hlavy=\"hlava..\">", '"'));
+//     writeln(unescape("<head <!-- Doplnit meta tagy!--> parametr_hlavy=\"hlava..\">", '"'));
 }
