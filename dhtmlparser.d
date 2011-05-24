@@ -177,7 +177,7 @@ class HTMLElement{
 			}
 			this.params[key] = tmp[$ - 1];
 		
-		// Remove craps from parameters
+		// Remove craps from parameters - přepsat na používaní unescaperu
 		foreach(pkey, pvalue; this.params){
 			if (this.params[pkey].startsWith("'") || this.params[pkey].startsWith("\""))
 				this.params[pkey] = this.params[pkey][1 .. $];
@@ -244,7 +244,7 @@ class HTMLElement{
 		
 		if (this.element != ""){
 			output ~= this.tagToString() ~ "\n";
-			depth = 1;
+			depth += 1;
 		}
 		
 		if (this.childs !is null)
