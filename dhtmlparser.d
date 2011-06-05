@@ -1,8 +1,7 @@
 /**
- * dhtmlparser.d v0.2.0 (09.04.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+ * dhtmlparser.d v0.3.0 (05.06.2011) by Bystroushaak (bystrousak@kitakitsune.org)
  * 
  * TODO:
-	 * ukladat informace o typu parametru, nebo provadet nejaky nahrazovani \\, \", \'
 	 * pretiffy by měla replacovat "    " za " ", nebrat v ůvahu řádky plné mezer (nikoli prázdné!)
 	 * zapouzdřit HTMLElement
 	 * promyslet a přidat vyhledávací a porovnávací metody, nějaký dotazovač
@@ -13,6 +12,8 @@
 import std.string;
 import std.array;
 
+import quote_escaper;
+
 import std.stdio;
 
 class HTMLParserException:Exception{
@@ -22,7 +23,6 @@ class HTMLParserException:Exception{
 }
 
 class HTMLElement{
-	private char params_type;
 	private string element, tagname;
 	private bool istag, isendtag, iscomment, isnonpairtag;
 	
@@ -54,7 +54,7 @@ class HTMLElement{
 	 **************************************************************************/
 
 	// dopsat vyhledavani podle argumentu, findAll
-	public HTMLElement[] find(string tag_name, string[string] tag_arguments = null){
+	public HTMLElement[] find(string tag_name, string[string] params = null){
 		HTMLElement[] output;
 
 		if (this.isComment() || this.isNonPairTag() || this.isEndTag())
@@ -66,7 +66,7 @@ class HTMLElement{
 			
 		HTMLElement tmp[];
 		foreach(el; this.childs){
-			tmp = el.find(tag_name, tag_arguments);
+			tmp = el.find(tag_name, params);
 
 			if (tmp.length > 0)
 				output ~= tmp;
@@ -177,13 +177,22 @@ class HTMLElement{
 			}
 			this.params[key] = tmp[$ - 1];
 		
-		// Remove craps from parameters - přepsat na používaní unescaperu
-		foreach(pkey, pvalue; this.params){
-			if (this.params[pkey].startsWith("'") || this.params[pkey].startsWith("\""))
-				this.params[pkey] = this.params[pkey][1 .. $];
-			if (this.params[pkey].endsWith("'") || this.params[pkey].endsWith("\""))
-				this.params[pkey] = this.params[pkey][0 .. $ - 1];
+		// Read and unescape parameters
+		string tmparam;
+		foreach(pkey, ref pvalue; this.params){
+			tmparam = cast(string) pvalue;
+			
+			if (pvalue.startsWith("'") || pvalue.startsWith("\""))
+				tmparam = cast(string) pvalue[1 .. $];
+			if (pvalue.endsWith("'") || pvalue.endsWith("\""))
+				tmparam = tmparam[0 .. $ - 1];
+			
+			if (pvalue.startsWith("'") || pvalue.startsWith("\""))
+				tmparam = quote_escaper.unescape(tmparam, pvalue[0]);
+			
+			pvalue = tmparam;
 		}
+		
 	}
 	//* /Parsers ***************************************************************
 	
@@ -232,7 +241,16 @@ class HTMLElement{
 	}
 
 	public string tagToString(){
-		return this.element;
+		if (! this.isOpeningTag())
+			return this.element;
+		else{
+			string output = "<" ~ this.tagname;
+			
+			foreach(key, val; this.params)
+				output ~= " " ~ key ~ "=\"" ~ quote_escaper.escape(val, '"') ~ "\"";
+				
+			return output ~ ">";
+		}
 	}
 	
 	public string getTagName(){
@@ -467,11 +485,7 @@ public static HTMLElement parseString(ref string txt){
 	return container;
 }
 
-public string unescape(string str, char c){
-    return str;
-}
-
-
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 void main(){
 	HTMLElement dom = parseString(
@@ -486,7 +500,7 @@ void main(){
 		"Nejaky pekny odstavecek.." ~
 		"<!-- zakomentovany text.. >>><<<< \" -->"
 		"</body>" ~
-		"<html>" ~
+		`<html onclick="alert('hello \' world');">` ~
 		"</html>" ~
 		"</html>"
 	);
