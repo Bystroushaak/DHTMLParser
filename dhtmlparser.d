@@ -2,7 +2,7 @@
  * dhtmlparser.d v0.3.0 (05.06.2011) by Bystroushaak (bystrousak@kitakitsune.org)
  * 
  * TODO:
-	 * pretiffy by měla replacovat "    " za " ", nebrat v ůvahu řádky plné mezer (nikoli prázdné!)
+	 * pretiffy by měla replacovat "    " za " ", nebrat v úvahu řádky plné mezer (nikoli prázdné!)
 	 * zapouzdřit HTMLElement
 	 * promyslet a přidat vyhledávací a porovnávací metody, nějaký dotazovač
 	 * přidat možnost vyhledávání podle vlastní fce..
@@ -61,7 +61,24 @@ class HTMLElement{
 			return null;
 
 		if (this.tagname == tag_name){
-			return output ~ this;
+			if (params == null)
+				return output ~ this;
+			else{
+				bool tmp_stat = true;
+				foreach(key, val; params){
+					if (key !in this.params)
+						tmp_stat = false;
+					else{
+						if (params[key] != this.params[key])
+						tmp_stat = false;
+					}
+				}
+				if (this.params.length == 0)
+					tmp_stat = false;
+					
+				if (tmp_stat)
+					output ~= this;
+			}
 		}
 			
 		HTMLElement tmp[];
@@ -172,10 +189,10 @@ class HTMLElement{
 				li = (li < tmp[i].lastIndexOf("'") ? li : tmp[i].lastIndexOf("'"));
 				li = (li < tmp[i].lastIndexOf("\"") ? li : tmp[i].lastIndexOf("\""));
 				
-				this.params[key] = tmp[i][0 .. li + 1];
+				this.params[key.strip()] = tmp[i][0 .. li + 1];
 				key = tmp[i][li + 1 .. $];
 			}
-			this.params[key] = tmp[$ - 1];
+			this.params[key.strip()] = tmp[$ - 1];
 		
 		// Read and unescape parameters
 		string tmparam;
@@ -275,7 +292,7 @@ class HTMLElement{
 	}
 	
 	public string pretiffy(HTMLElement[] istack, uint depth = 0, string separator = "  "){
-		string output;
+		string output, strout;
 		
 		foreach(el; istack){
 			for (uint i = 0; i < depth; i++)
@@ -287,7 +304,12 @@ class HTMLElement{
 				output ~= pretiffy(el.childs, depth + 1, separator);
 		}
 		
-		return output;
+		// kinky, yay!
+		foreach(line; output.splitlines())
+			if (line.strip() != "")
+				strout ~= line ~ "\n";
+		
+		return strout;
 	}
 	//* /Getters ***************************************************************
 	
@@ -486,30 +508,3 @@ public static HTMLElement parseString(ref string txt){
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-void main(){
-	HTMLElement dom = parseString(
-		"<?xml syntax?>" ~
-		"<doctype sracky=asd>" ~
-		"<HTML>" ~
-		"<head <!-- Doplnit meta tagy!--> parametr_hlavy=\"hlava..\">" ~
-		"<title>Testovaci polygon..</title>" ~
-		"</head>" ~
-		"<body bgcolor='black'asd=bsd>" ~
-		"<h1>Polygon..</h1>" ~
-		"Nejaky pekny odstavecek.." ~
-		"<!-- zakomentovany text.. >>><<<< \" -->"
-		"</body>" ~
-		`<html onclick="alert('hello \' world');">` ~
-		"</html>" ~
-		"</html>"
-	);
-
-	writeln(dom.pretiffy());
-
-	writeln("---\n");
-
-	writeln(dom.find("head")[0].pretiffy());
-    
-//     writeln(unescape("<head <!-- Doplnit meta tagy!--> parametr_hlavy=\"hlava..\">", '"'));
-}
