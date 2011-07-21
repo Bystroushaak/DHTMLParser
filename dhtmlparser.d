@@ -1,11 +1,8 @@
 /**
- * dhtmlparser.d v0.3.0 (05.06.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+ * dhtmlparser.d v0.4.0 (21.07.2011) by Bystroushaak (bystrousak@kitakitsune.org)
  * 
  * TODO:
-	 * pretiffy by měla replacovat "    " za " ", nebrat v úvahu řádky plné mezer (nikoli prázdné!)
 	 * zapouzdřit HTMLElement
-	 * promyslet a přidat vyhledávací a porovnávací metody, nějaký dotazovač
-	 * přidat možnost vyhledávání podle vlastní fce..
 	 * přidělat transformační fce - setIsComment, která umožní zakomentovávat a odkomentovávat jednotlivé elementy
 */ 
 
@@ -54,24 +51,26 @@ class HTMLElement{
 	 **************************************************************************/
 
 	// dopsat vyhledavani podle argumentu, findAll
-	public HTMLElement[] find(string tag_name, string[string] params = null){
+	public HTMLElement[] find(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
 		HTMLElement[] output;
 
 		if (this.isComment() || this.isNonPairTag() || this.isEndTag())
 			return null;
+		
+		if (fn != null)
+			if (fn(this))
+				output ~= this;
 
-		if (this.tagname == tag_name){
+		if (this.tagname == tag_name && tagname != "" && tagname != null){
 			if (params == null)
-				return output ~ this;
+				output ~= this;
 			else{
 				bool tmp_stat = true;
 				foreach(key, val; params){
 					if (key !in this.params)
 						tmp_stat = false;
-					else{
-						if (params[key] != this.params[key])
+					else if (params[key] != this.params[key])
 						tmp_stat = false;
-					}
 				}
 				if (this.params.length == 0)
 					tmp_stat = false;
@@ -83,7 +82,7 @@ class HTMLElement{
 			
 		HTMLElement tmp[];
 		foreach(el; this.childs){
-			tmp = el.find(tag_name, params);
+			tmp = el.find(tag_name, params, fn);
 
 			if (tmp.length > 0)
 				output ~= tmp;
@@ -304,7 +303,7 @@ class HTMLElement{
 				output ~= pretiffy(el.childs, depth + 1, separator);
 		}
 		
-		// kinky, yay!
+		// yay, kinky!
 		foreach(line; output.splitlines())
 			if (line.strip() != "")
 				strout ~= line ~ "\n";
