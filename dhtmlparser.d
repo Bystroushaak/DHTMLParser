@@ -1,11 +1,15 @@
 /**
- * dhtmlparser.d v0.4.0 (21.07.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+ * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Copyright: This work is licensed under a CC BY (http://creativecommons.org/licenses/by/3.0/)
- * 
- * TODO:
-	 * zapouzdřit HTMLElement
-	 * přidělat transformační fce - setIsComment, která umožní zakomentovávat a odkomentovávat jednotlivé elementy
+ * Version: 0.5.0
+ * Date: 21.07.2011
+ *
+ * Authors: 
+ *     Bystroushaak (bystrousak@kitakitsune.org)
+ * Website: 
+ *     Github; https://github.com/Bystroushaak/DHTMLParser
+ * Copyright: 
+ *     This work is licensed under a CC BY (http://creativecommons.org/licenses/by/3.0/)
 */ 
 
 module dhtmlparser;
@@ -15,19 +19,20 @@ import std.array;
 
 import quote_escaper;
 
-class HTMLParserException:Exception{
-	this(string msg){
-		super(msg);
-	}
-}
 
+
+/**
+ * Container for parsed html elements.
+*/
 class HTMLElement{
 	private string element, tagname;
 	private bool istag, isendtag, iscomment, isnonpairtag;
 	
+	/// Nested tags. Encapsulation would complicate whole class much more then public property.
 	public HTMLElement[] childs;
-	public HTMLElement endtag, openertag;
+	/// Tag parameters.
 	public string[string] params;
+	public HTMLElement endtag, openertag;
 	
 	this(string str){
 		this.element = str;
@@ -48,11 +53,61 @@ class HTMLElement{
 			this.parseParams();
 	}
 
-	/***************************************************************************
+	/* *************************************************************************
 	 * Finders *****************************************************************
-	 **************************************************************************/
+	 ************************************************************************ */
 
-	// dopsat vyhledavani podle argumentu, findAll
+	/**
+	 * Simple search engine.
+	 *
+	 * Finds elements and subelements which match patterns given by parameters.
+	 * Allows searching defined by users lambda function.
+	 *
+	 * Params:
+		 * tag_name = Name of searched element.
+		 * params   = Associative array containing searched parameters
+		 * fn       = User defined function. Function takes elements and returns true if wanted.
+	 *
+	 * Examples:
+	 *
+	 * ---
+	 * import std.stdio;
+	 * 
+	 * HTMLElement dom = parseString("<div id='xe' a='b'>obsah xe divu</div><div id='xu' a='b'>obsah xu divu</div>");
+	 *
+	 * writeln(dom);
+	 *
+	 * // writes:
+	 * <div a="b" id="xe">
+	 *   obsah xe divu
+	 * </div>
+	 * <div a="b" id="xu">
+	 *   obsah xu divu
+	 * </div>
+	 * ---
+	 * Search by parameters;
+	 * ---
+	 * writeln(dom.find("div", ["id":"xe"]))
+	 *
+	 * // writes:
+	 * [<div a="b" id="xe">
+	 *   obsah xe divu
+	 * </div>
+	 * ]
+	 * ---
+	 * Search by lambda function;
+	 * ---
+	 * writeln(dom.find(null, null, function(HTMLElement e){return ("id" in e.params && e.params["id"] == "xu");}));
+	 *
+	 * // writes:
+	 * [<div a="b" id="xu">
+	 *   obsah xu divu
+	 * </div>
+	 * ]
+	 * ---
+	 *
+	 * Returns: Array of matching elements.
+	*/ 
 	public HTMLElement[] find(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
 		HTMLElement[] output;
 
@@ -93,9 +148,9 @@ class HTMLElement{
 		return output;
 	}
 	
-	/***************************************************************************
+	/* *************************************************************************
 	 * PARSERS *****************************************************************
-	 **************************************************************************/ 
+	 ************************************************************************ */
 	private void parseIsTag(){
 		if (this.element.startsWith("<") && this.element.endsWith(">"))
 			this.istag = true;
@@ -182,7 +237,7 @@ class HTMLElement{
 		
 		string[] tmp = params.split("=");
 		
-		// Parse parameters (it isn't so simple how it could look..)
+		// Parse parameters (it isn't so simple as it could look..)
 			uint li; // last index
 			string value, key = tmp[0];
 			for(uint i = 1; i < tmp.length - 1; i++){
@@ -214,21 +269,30 @@ class HTMLElement{
 	}
 	//* /Parsers ***************************************************************
 	
-	/***************************************************************************
+	/* *************************************************************************
 	 * Getters *****************************************************************
-	 **************************************************************************/ 
-	
+	 ************************************************************************ */
+
+	/**
+	 * True if element is tag (not content).
+	*/ 
 	public bool isTag(){
 		return this.istag;
 	}
-		
+
+	/**
+	 * True if is opening tag.
+	*/ 
 	public bool isOpeningTag(){
 		if (this.isTag() && !this.isComment() && !this.isEndTag() && !this.isNonPairTag())
 			return true;
 		else
 			return false;
 	}
-		
+
+	/**
+	 * True if HTMLElement is end tag (/tag).
+	*/ 
 	public bool isEndTag(){
 		return this.isendtag;
 	}
@@ -245,19 +309,33 @@ class HTMLElement{
 		else
 			return false;
 	} 
-	
+
+	/**
+	 * True if HTMLElement is nonpair tag (br for example).
+	*/ 
 	public bool isNonPairTag(){
 		return this.isnonpairtag;
 	}
-	
+
+	/**
+	 * True if HTMLElement is html comment.
+	*/
 	public bool isComment(){
 		return this.iscomment;
 	}
-	
+
+	/**
+	 * Returns pretiffyied tag with content.
+	 *
+	 * See_also: pretiffy()
+	*/ 
 	public string toString(){
 		return this.pretiffy();
 	}
 
+	/**
+	 * Returns tag (with parameters), without content or endtag.
+	*/ 
 	public string tagToString(){
 		if (! this.isOpeningTag())
 			return this.element;
@@ -270,11 +348,31 @@ class HTMLElement{
 			return output ~ ">";
 		}
 	}
-	
+
+	/**
+	 * Returns tag name.
+	*/ 
 	public string getTagName(){
 		return this.tagname;
 	}
 	
+	/**
+	 * Returns content of tag (everything between opener and endtag).
+	*/
+	public string getContent(){
+		string output;
+		
+		foreach(c; this.childs)
+			output ~= c.pretiffy();
+		
+		return output;
+	}
+
+	/**
+	 * Returns pretiffyied tag with content. Same as toString().
+	 *
+	 * See_also: toString()
+	*/ 
 	public string pretiffy(uint depth = 0, string separator = "  "){
 		string output;
 		
@@ -314,10 +412,10 @@ class HTMLElement{
 	}
 	//* /Getters ***************************************************************
 	
-	/***************************************************************************
+	/* *************************************************************************
 	 * Setters *****************************************************************
-	 **************************************************************************/ 
-	
+	 ************************************************************************ */
+
 	public void isNonPairTag(bool isnonpairtag){
 		this.isnonpairtag = isnonpairtag;
 		this.endtag = null;
@@ -495,6 +593,11 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 	return ostack;
 }
 
+/**
+ * Parse given string and return DOM from HTMLElements.
+ *
+ * See_also: HTMLElement
+*/
 public static HTMLElement parseString(ref string txt){
 	HTMLElement[] istack;
 	
@@ -509,3 +612,30 @@ public static HTMLElement parseString(ref string txt){
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+unittest{
+	HTMLElement dom = parseString(
+		"<div id='xe' a='b'>obsah xe divu</div>
+		 <div id='xu' a='b'>obsah xu divu</div>"
+	);
+	HTMLElement divXe, divXu;
+
+	divXe = dom.find("div", ["id":"xe"])[0];
+	divXu = dom.find("div", ["id":"xu"])[0];
+	
+	assert(divXe.tagToString() == `<div a="b" id="xe">`);
+	assert(divXu.tagToString() == `<div a="b" id="xu">`);
+	
+	assert(divXe.getTagName() == "div");
+	assert(divXe.getTagName() == divXu.getTagName());
+	
+	assert(divXe.isComment() == false);
+	assert(divXe.isComment() == divXu.isComment());
+	
+	assert(divXe.isNonPairTag() != divXe.isOpeningTag());
+	
+	assert(divXe.isTag() == true);
+	assert(divXe.isTag() == divXu.isTag());
+	
+	assert(divXe.getContent() == "obsah xe divu\n");
+}
