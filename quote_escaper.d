@@ -2,7 +2,7 @@
  * 
  * Module for (un)escaping quotes.
  * 
- * This work is licensed under a CC BY http://creativecommons.org/licenses/by/3.0/
+ * This work is licensed under a CC BY (http://creativecommons.org/licenses/by/3.0/)
 */
 
 public string unescape(string input, char quote = '"'){

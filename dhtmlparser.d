@@ -1,17 +1,19 @@
 /**
  * dhtmlparser.d v0.4.0 (21.07.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+ *
+ * Copyright: This work is licensed under a CC BY (http://creativecommons.org/licenses/by/3.0/)
  * 
  * TODO:
 	 * zapouzdřit HTMLElement
 	 * přidělat transformační fce - setIsComment, která umožní zakomentovávat a odkomentovávat jednotlivé elementy
 */ 
 
+module dhtmlparser;
+
 import std.string;
 import std.array;
 
 import quote_escaper;
-
-import std.stdio;
 
 class HTMLParserException:Exception{
 	this(string msg){
