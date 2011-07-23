@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 0.5.0
- * Date: 21.07.2011
+ * Version: 0.5.1
+ * Date: 23.07.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -258,10 +258,12 @@ class HTMLElement{
 			if (pvalue.startsWith("'") || pvalue.startsWith("\""))
 				tmparam = cast(string) pvalue[1 .. $];
 			if (pvalue.endsWith("'") || pvalue.endsWith("\""))
-				tmparam = tmparam[0 .. $ - 1];
+				if (tmparam.length > 1)
+					tmparam = tmparam[0 .. $ - 1];
 			
 			if (pvalue.startsWith("'") || pvalue.startsWith("\""))
-				tmparam = quote_escaper.unescape(tmparam, pvalue[0]);
+				if (tmparam.length > 2)
+					tmparam = quote_escaper.unescape(tmparam, pvalue[0]);
 			
 			pvalue = tmparam;
 		}
