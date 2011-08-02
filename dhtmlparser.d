@@ -304,7 +304,7 @@ class HTMLElement{
 	*/
 	public bool isEndTagTo(HTMLElement opener){
 		if (this.isendtag && opener.isOpeningTag())
-			if (this.tagname.tolower() == opener.getTagName().tolower())
+			if (this.tagname.toLower() == opener.getTagName().toLower())
 				return true;
 			else
 				return false;
@@ -406,7 +406,7 @@ class HTMLElement{
 		}
 		
 		// yay, kinky!
-		foreach(line; output.splitlines())
+		foreach(line; output.splitLines())
 			if (line.strip() != "")
 				strout ~= line ~ "\n";
 		
@@ -499,6 +499,8 @@ private string[] raw_split(string itxt){
 				}
 				
 				break;
+			default: // switch without default is deprecated :S
+				break;
 		}
 		
 		// rotate buffer
@@ -556,7 +558,7 @@ private uint indexOfEndTag(HTMLElement[] istack){
 	uint cnt = 0;
 	
 	foreach(uint index, HTMLElement el; istack[1 .. $]){
-		if (el.isOpeningTag() && (el.getTagName().tolower() == opener.getTagName().tolower()))
+		if (el.isOpeningTag() && (el.getTagName().toLower() == opener.getTagName().toLower()))
 			cnt++;
 		else if (el.isEndTagTo(opener))
 			if (cnt == 0)
