@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 0.5.1
- * Date: 23.07.2011
+ * Version: 0.6.0
+ * Date: 08.08.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -34,7 +34,16 @@ class HTMLElement{
 	public string[string] params;
 	public HTMLElement endtag, openertag;
 	
+	/// Useful as container for document (root of the DOM).
+	this(){
+		this("");
+	}
+	
+	/**
+	 * Standard constructor used when parsing document from string. 
+	*/ 
 	this(string str){
+		// this code is ugly - crime of premature optimization :(
 		this.element = str;
 		
 		this.parseIsTag();
@@ -51,6 +60,65 @@ class HTMLElement{
 		
 		if (this.isOpeningTag())
 			this.parseParams();
+	}
+	
+	/**
+	 * Special constructor used when creating DOM. 
+	*/ 
+	this(string tagname, string[string] params){
+		tagname = tagname.strip().replace(" ", "");
+		
+		string nonpair = "";
+		if (tagname.startsWith("<"))
+			tagname = tagname[1 .. $];
+		if (tagname.endsWith("/>")){
+			tagname = tagname[0 .. $ - 2];
+			nonpair = " /";
+		}else if (tagname.endsWith(">"))
+			tagname = tagname[0 .. $ - 1];
+		
+		// Convert into single string
+		string output = "<" ~ tagname;
+			
+		foreach(key, val; params)
+			output ~= " " ~ key ~ "=\"" ~ quote_escaper.escape(val, '"') ~ "\"";
+			
+		this(output ~ nonpair ~ ">");
+	}
+	
+	/**
+	 * This constructor is used for creating DOM from elements.
+	 * 
+	 * Example:
+	 * -----
+	 * HTMLElement e = new HTMLElement([
+	 *   new HTMLElement("<val>",[
+	 *     new HTMLElement("xe")
+	 *   ])
+	 * ]);
+	 * 
+	 * writeln(e);
+	 * -----
+	 * Writes;
+	 * -----
+	 * <val>
+	 *  xe
+	 * </val>
+	 * ----- 
+	*/ 
+	this(string tagname, string[string] params, HTMLElement childs[]){
+		this(tagname, params);
+		this.childs ~= HTMLElement.closeElements(childs);
+	}
+	/// Same as previous, but with less options.
+	this(string tagname, HTMLElement childs[]){
+		this(tagname);
+		this.childs ~= HTMLElement.closeElements(childs);
+	}
+	/// Same as previous, but with less options.
+	this(HTMLElement childs[]){
+		this();
+		this.childs ~= HTMLElement.closeElements(childs);
 	}
 
 	/* *************************************************************************
@@ -392,7 +460,7 @@ class HTMLElement{
 		return output;
 	}
 	
-	public string pretiffy(HTMLElement[] istack, uint depth = 0, string separator = "  "){
+	private string pretiffy(HTMLElement[] istack, uint depth = 0, string separator = "  "){
 		string output, strout;
 		
 		foreach(el; istack){
@@ -402,7 +470,7 @@ class HTMLElement{
 			output ~= el.tagToString() ~ "\n";
 
 			if (el.childs.length > 0)
-				output ~= pretiffy(el.childs, depth + 1, separator);
+					output ~= pretiffy(el.childs, depth + 1, separator);
 		}
 		
 		// yay, kinky!
@@ -425,6 +493,34 @@ class HTMLElement{
 	}
 	
 	//* /Setters ***************************************************************
+	
+	/* Static methods *********************************************************/
+	
+	// Close tags - used in some constructors
+	private static HTMLElement[] closeElements(HTMLElement childs[]){
+		HTMLElement o[];
+		
+		// Close all unclosed pair tags
+		foreach(e; childs){
+			if (e.isTag()){
+				if (!e.isNonPairTag() && !e.isEndTag() && !e.isComment() && e.endtag is null){
+					e.childs = closeElements(e.childs);
+					
+					o ~= e;
+					o ~= new HTMLElement("</" ~ e.getTagName() ~ ">");
+					
+					// Join opener and endtag
+					e.endtag = o[$ - 1];
+					o[$ - 1].openertag = e;
+				}else
+					o ~= e;
+			}else
+				o ~= e;
+		}
+		
+		return o;
+	}
+	//* /Static methods ********************************************************
 }
 
 

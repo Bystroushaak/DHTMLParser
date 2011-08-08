@@ -7,10 +7,10 @@
 D Module for parsing HTML in similar way like BeautifulSoup.
 <br><br>
 <b>Version:</b><br>
-0.5.0
+0.6.0
 <br><br>
 <b>Date:</b><br>
-21.07.2011
+08.08.2011
 
 <br><br>
 <b>Authors:</b><br>
@@ -32,6 +32,52 @@ Github; https://github.com/Bystroushaak/DHTMLParser
 <dt><big>string[string] <u>params</u>;
 </big></dt>
 <dd>Tag parameters.<br><br>
+
+</dd>
+<dt><big>this();
+</big></dt>
+<dd>Useful as container for document (root of the DOM).<br><br>
+
+</dd>
+<dt><big>this(string <i>str</i>);
+</big></dt>
+<dd>Standard constructor used when parsing document from string.<br><br>
+
+</dd>
+<dt><big>this(string <i>tagname</i>, string[string] <i>params</i>);
+</big></dt>
+<dd>Special constructor used when creating DOM.<br><br>
+
+</dd>
+<dt><big>this(string <i>tagname</i>, string[string] <i>params</i>, HTMLElement[] <i>childs</i>);
+</big></dt>
+<dd>This constructor is used for creating DOM from elements.
+<br><br>
+<b>Example:</b><br>
+<pre class="d_code"> HTMLElement e = <font color=blue>new</font> HTMLElement([
+   <font color=blue>new</font> HTMLElement(<font color=red>"&lt;val&gt;"</font>,[
+     <font color=blue>new</font> HTMLElement(<font color=red>"xe"</font>)
+   ])
+ ]);
+
+ writeln(e);
+</pre>
+ Writes;
+<pre class="d_code"> &lt;val&gt;
+  xe
+ &lt;/val&gt;
+</pre>
+<br><br>
+
+</dd>
+<dt><big>this(string <i>tagname</i>, HTMLElement[] <i>childs</i>);
+</big></dt>
+<dd>Same as previous, but with less options.<br><br>
+
+</dd>
+<dt><big>this(HTMLElement[] <i>childs</i>);
+</big></dt>
+<dd>Same as previous, but with less options.<br><br>
 
 </dd>
 <dt><big>HTMLElement[] <u>find</u>(string <i>tag_name</i>, string[string] <i>params</i> = null, bool function(HTMLElement) <i>fn</i> = null);
