@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 0.6.0
- * Date: 08.08.2011
+ * Version: 0.6.1
+ * Date: 13.09.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -316,7 +316,7 @@ class HTMLElement{
 			this.params[key.strip()] = tmp[i][0 .. li + 1];
 			key = tmp[i][li + 1 .. $];
 		}
-		this.params[key.strip()] = tmp[$ - 1];
+		this.params[key.strip()] = tmp[$ - 1].strip();
 		
 		// Read and unescape parameters
 		string tmparam;
@@ -395,12 +395,12 @@ class HTMLElement{
 	} 
 
 	/**
-	 * Returns pretiffyied tag with content.
+	 * Returns prettifyied tag with content.
 	 *
-	 * See_also: pretiffy()
+	 * See_also: prettify()
 	*/ 
 	public string toString(){
-		return this.pretiffy();
+		return this.prettify();
 	}
 
 	/**
@@ -433,17 +433,17 @@ class HTMLElement{
 		string output;
 		
 		foreach(c; this.childs)
-			output ~= c.pretiffy();
+			output ~= c.prettify();
 		
 		return output;
 	}
 
 	/**
-	 * Returns pretiffyied tag with content. Same as toString().
+	 * Returns prettifyied tag with content. Same as toString().
 	 *
 	 * See_also: toString()
 	*/ 
-	public string pretiffy(uint depth = 0, string separator = "  "){
+	public string prettify(uint depth = 0, string separator = "  "){
 		string output;
 		
 		if (this.element != ""){
@@ -452,7 +452,7 @@ class HTMLElement{
 		}
 		
 		if (this.childs !is null)
-			output ~= pretiffy(this.childs, depth);
+			output ~= prettify(this.childs, depth);
 		
 		if (this.endtag !is null)
 			output ~= this.endtag.tagToString() ~ "\n";
@@ -460,7 +460,7 @@ class HTMLElement{
 		return output;
 	}
 	
-	private string pretiffy(HTMLElement[] istack, uint depth = 0, string separator = "  "){
+	private string prettify(HTMLElement[] istack, uint depth = 0, string separator = "  "){
 		string output, strout;
 		
 		foreach(el; istack){
@@ -470,7 +470,7 @@ class HTMLElement{
 			output ~= el.tagToString() ~ "\n";
 
 			if (el.childs.length > 0)
-					output ~= pretiffy(el.childs, depth + 1, separator);
+					output ~= prettify(el.childs, depth + 1, separator);
 		}
 		
 		// yay, kinky!
@@ -488,8 +488,10 @@ class HTMLElement{
 
 	public void isNonPairTag(bool isnonpairtag){
 		this.isnonpairtag = isnonpairtag;
-		this.endtag = null;
-		this.childs = null;
+		if (!isnonpairtag){
+			this.endtag = null;
+			this.childs = null;
+		}
 	}
 	
 	//* /Setters ***************************************************************
@@ -626,7 +628,7 @@ private HTMLElement[] repairTags(HTMLElement[] raw_input){
 				if (raw_input[index - 1].tagToString().startsWith("<") && raw_input[index + 1].tagToString().endsWith(">")){
 					ostack[$ - 1] = new HTMLElement(ostack[$ - 1].tagToString() ~ raw_input[index + 1].tagToString());
 					ostack ~= el;
-					index += 1;
+					index++;
 					continue;
 				}
 			}
@@ -681,7 +683,7 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 
 		if (end_tag_index != 0){
 			el.childs = parseDOM(istack[index + 1 .. end_tag_index + index]);
-			el.endtag = istack[end_tag_index + index]; // Rreference to endtag
+			el.endtag = istack[end_tag_index + index]; // Reference to endtag
 			el.endtag.openertag = el; // Reference to openertag
 			ostack ~= el;
 			ostack ~= el.endtag;
@@ -708,6 +710,7 @@ public static HTMLElement parseString(ref string txt){
 
 	HTMLElement container = new HTMLElement("");
 	container.childs ~= parseDOM(repairTags(istack));
+	
 	return container;
 }
 
