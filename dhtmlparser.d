@@ -306,17 +306,17 @@ class HTMLElement{
 		string[] tmp = params.split("=");
 		
 		// Parse parameters (it isn't so simple as it could look..)
-			uint li; // last index
-			string value, key = tmp[0];
-			for(uint i = 1; i < tmp.length - 1; i++){
-				li = tmp[i].lastIndexOf(" ");
-				li = (li < tmp[i].lastIndexOf("'") ? li : tmp[i].lastIndexOf("'"));
-				li = (li < tmp[i].lastIndexOf("\"") ? li : tmp[i].lastIndexOf("\""));
-				
-				this.params[key.strip()] = tmp[i][0 .. li + 1];
-				key = tmp[i][li + 1 .. $];
-			}
-			this.params[key.strip()] = tmp[$ - 1];
+		uint li; // last index
+		string value, key = tmp[0];
+		for(uint i = 1; i < tmp.length - 1; i++){
+			li = tmp[i].lastIndexOf(" ");
+			li = (li < tmp[i].lastIndexOf("'") ? li : tmp[i].lastIndexOf("'"));
+			li = (li < tmp[i].lastIndexOf("\"") ? li : tmp[i].lastIndexOf("\""));
+			
+			this.params[key.strip()] = tmp[i][0 .. li + 1];
+			key = tmp[i][li + 1 .. $];
+		}
+		this.params[key.strip()] = tmp[$ - 1];
 		
 		// Read and unescape parameters
 		string tmparam;
@@ -351,34 +351,11 @@ class HTMLElement{
 	}
 
 	/**
-	 * True if is opening tag.
-	*/ 
-	public bool isOpeningTag(){
-		if (this.isTag() && !this.isComment() && !this.isEndTag() && !this.isNonPairTag())
-			return true;
-		else
-			return false;
-	}
-
-	/**
 	 * True if HTMLElement is end tag (/tag).
 	*/ 
 	public bool isEndTag(){
 		return this.isendtag;
 	}
-
-	/**
-	 * Returns true, if this element is endtag to opener.
-	*/
-	public bool isEndTagTo(HTMLElement opener){
-		if (this.isendtag && opener.isOpeningTag())
-			if (this.tagname.toLower() == opener.getTagName().toLower())
-				return true;
-			else
-				return false;
-		else
-			return false;
-	} 
 
 	/**
 	 * True if HTMLElement is nonpair tag (br for example).
@@ -393,6 +370,29 @@ class HTMLElement{
 	public bool isComment(){
 		return this.iscomment;
 	}
+
+	/**
+	 * True if is opening tag.
+	*/ 
+	public bool isOpeningTag(){
+		if (this.isTag() && !this.isComment() && !this.isEndTag() && !this.isNonPairTag())
+			return true;
+		else
+			return false;
+	}
+
+	/**
+	 * Returns true, if this element is endtag to opener.
+	*/
+	public bool isEndTagTo(HTMLElement opener){
+		if (this.isendtag && opener.isOpeningTag())
+			if (this.tagname.toLower() == opener.getTagName().toLower())
+				return true;
+			else
+				return false;
+		else
+			return false;
+	} 
 
 	/**
 	 * Returns pretiffyied tag with content.
@@ -448,7 +448,7 @@ class HTMLElement{
 		
 		if (this.element != ""){
 			output ~= this.tagToString() ~ "\n";
-			depth += 1;
+			depth++;
 		}
 		
 		if (this.childs !is null)
