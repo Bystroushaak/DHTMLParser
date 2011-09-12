@@ -51,7 +51,8 @@ def escape(input, quote = '"'):
 
 
 class HTMLElement():
-	def __init__(self, tag, second = None, third = None):
+	def __init__(self, tag = "", second = None, third = None):
+		
 		self.__element = None
 		self.__tagname = ""
 		
@@ -65,10 +66,66 @@ class HTMLElement():
 		self.endtag = None
 		self.openertag = None
 		
-		if second == None and third == None:
+		# blah, constructor overloading in python sux :P
+		if isinstance(tag, str) and second == None and third == None:
+			self.__init_tag(tag)
+		elif isinstance(tag, str) and isinstance(second, dict) and third == None:
+			self.__init_tag_params(tag, second)
+		elif isinstance(tag, str) and isinstance(second, dict) and (isinstance(third, list) or isinstance(third, tuple)) and len(third) > 0 and isinstance(third[0], HTMLElement):
+			self.__init_tag_params(tag, second)
+			self.childs = __closeElements(third)
+		elif isinstance(tag, str) and (isinstance(second, list) or isinstance(second, tuple)) and len(second) > 0 and isinstance(second[0], HTMLElement):
+			self.__init_tag(tag)
+			self.childs = __closeElements(second)
+		elif (isinstance(tag, list) or isinstance(tag, tuple)) and len(tag) > 0 and isinstance(tag[0], HTMLElement):
+			self.__init_tag("")
+			self.childs = __closeElements(tag)
+		else:
+			raise Exception("Oh no, not this crap!")
+	
+	#===========================================================================
+	#= Constructor overloading =================================================
+	#===========================================================================
+	def __init_tag(self, tag):
 			self.__element = tag
-
-
+			
+			self.__parseIsTag()
+			self.__parseIsEndTag()
+			
+			self.__parseIsComment()
+			
+			if not self.isTag() or self.isComment():
+				self.__tagname = self.__element
+			else:
+				self.__parseTagName()
+			
+			if self.isOpeningTag():
+				self.__parseParams()
+	
+	def __init_tag_params(self, tag, params):
+		tag = tag.strip().replace(" ", "")
+		nonpair = ""
+		
+		if tag.startswith("<"):
+			tag = tag[1:]
+		
+		if tag.endswith("/>"):
+			tag = tag[:-2]
+			nonpair = " /"
+		elif tag.endswith(">"):
+			tag = tag[:-1]
+		
+		output = "<" + tag
+		
+		for key in params.keys():
+			output += " " + key + '="' + escape(params[key], '"') + '"'
+		
+		self.__init_tag(output + nonpair + ">")
+	
+	
+	#===========================================================================
+	#= Finders =================================================================
+	#===========================================================================
 	def find(self, tag_name, params = None, fn = None):
 		"""	
 		Simple search engine.
@@ -202,7 +259,7 @@ class HTMLElement():
 		value = []
 		key   = tmp[0]
 		i = 1
-		while i < len(tmp - 1):
+		while i < len(tmp) - 1:
 			li = tmp[i].rfind(" ")
 			if li < tmp[i].rfind("'"):
 				li = tmp[i].rfind("'")
