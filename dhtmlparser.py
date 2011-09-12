@@ -1,28 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# NONAME v0.0.0 (dd.mm.yy) by Bystroushaak (bystrousak@kitakitsune.org)
-# This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 
-# Unported License (http://creativecommons.org/licenses/by-nc-sa/3.0/cz/).
-# Created in §Editor text editor.
+# DHTMLParser in python v1.0.0 (13.09.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+# This work is licensed under a Creative Commons 3.0 Unported License
+# (http://creativecommons.org/licenses/by/3.0/cz/).
+# Created in Geany text editor.
 #
 # Notes:
-    # 
-#===============================================================================
-# Imports ======================================================================
-#===============================================================================
-
-
-
-#===============================================================================
-# Variables ====================================================================
-#===============================================================================
-
-
-
-#===============================================================================
-#= Functions & objects =========================================================
-#===============================================================================
+    #
+    
 def unescape(input, quote = '"'):
 	output = ""
 	old = input[0]
@@ -35,24 +21,45 @@ def unescape(input, quote = '"'):
 			continue
 		else:
 			output += old
+		
+		older = old
+		old = act
 	
 	return output
+
 
 def escape(input, quote = '"'):
 	output = ""
 	
 	for c in input:
 		if c == quote:
-			ouput += '\\'
+			output += '\\'
 		
 		output += c
 	
 	return output
 
 
+
 class HTMLElement():
-	def __init__(self, tag = "", second = None, third = None):
+	"""
+	Container for parsed html elements.
+	
+	You can create:
+		HTMLElement() # blank element
 		
+		HTMLElement("<tag>") # from string containing tag (only one tag)
+		
+		HTMLElement("<tag>", {"param":"value"}) # tag (with or without <>) with parameters defined by dictionary 
+		
+		# These constructors are usefull for creating documents:
+		HTMLElement("tag", {"param":"value"}, [HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+		HTMLElement("tag", [HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+		HTMLElement([HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+	"""
+	
+	
+	def __init__(self, tag = "", second = None, third = None):
 		self.__element = None
 		self.__tagname = ""
 		
@@ -176,7 +183,7 @@ class HTMLElement():
 		for el in self.childs:
 			tmp = el.find(tag_name, params, fn)
 			
-			if len(tmp) > 0:
+			if tmp != None and len(tmp) > 0:
 				output.extend(tmp)
 		
 		return output
@@ -256,14 +263,16 @@ class HTMLElement():
 		
 		# Parse parameters (it isn't so simple as it could look..)
 		li    = 0 # last index
-		value = []
 		key   = tmp[0]
+		
 		i = 1
 		while i < len(tmp) - 1:
 			li = tmp[i].rfind(" ")
-			if li < tmp[i].rfind("'"):
+			
+			if li > tmp[i].rfind("'"):
 				li = tmp[i].rfind("'")
-			if li < tmp[i].rfind('"'):
+			
+			if li > tmp[i].rfind('"'):
 				li = tmp[i].rfind('"')
 			
 			self.params[key.strip()] = tmp[i][0:li + 1]
@@ -275,11 +284,11 @@ class HTMLElement():
 		# Read and unescape parameters
 		tmparam = ""
 		for key in self.params.keys():
-			pvalue = self.params[key]
-			tmparam = str(pvalue)
+			pvalue = self.params[key].strip()
+			tmparam = pvalue
 			
-			if pvalue.startswith("'") or pvalue.startswith('"'):
-				tmparam = str(pvalue[1:])
+			if pvalue.startswith("'") or pvalue.startswith("\""):
+				tmparam = pvalue[1:]
 			if pvalue.endswith("'") or pvalue.endswith('"'):
 				if len(tmparam) > 1:
 					tmparam = tmparam[:-1]
@@ -288,37 +297,42 @@ class HTMLElement():
 				if len(tmparam) > 2:
 					tmparam = unescape(tmparam, pvalue[0])
 			
-			pvalue = tmparam
-			self.params[key] = pvalue
+			self.params[key] = tmparam
 
 	#===========================================================================
 	#= Parsers =================================================================
 	#===========================================================================
-
 	def isTag(self):
+		"True if element is tag (not content)."
 		return self.__istag
 
 	def isComment(self):
+		"True if HTMLElement is html comment."
 		return self.__iscomment
 
 	def isEndTag(self):
+		"True if HTMLElement is end tag (/tag)."
 		return self.__isendtag
 
 	def isNonPairTag(self, isnonpair = None):
+		"True if HTMLElement is nonpair tag (br for example). Can also change state from pair to nonpair and so."
 		if isnonpair == None:
 			return self.__isnonpairtag
 		else:
 			self.__isnonpairtag = isnonpair
-			self.endtag = None
-			self.childs = []
+			if not isnonpair:
+				self.endtag = None
+				self.childs = []
 
 	def isOpeningTag(self):
+		"True if is opening tag."
 		if (self.isTag() and not self.isComment() and not self.isEndTag() and not self.isNonPairTag()):
 			return True
 		else:
 			return False
 	
 	def isEndTagTo(self, opener):
+		"Returns true, if this element is endtag to opener."
 		if self.__isendtag and opener.isOpeningTag():
 			if self.__tagname.lower() == opener.getTagName().lower():
 				return True
@@ -328,9 +342,11 @@ class HTMLElement():
 			return False
 
 	def __str__(self):
-		return self.pretiffy()
+		"Returns prettifyied tag with content."
+		return self.prettify()
 	
 	def tagToString(self):
+		"Returns tag (with parameters), without content or endtag."
 		if not self.isOpeningTag():
 			return self.__element
 		else:
@@ -342,19 +358,20 @@ class HTMLElement():
 			return output + ">"
 	
 	def getTagName(self):
+		"Returns tag name."
 		return self.__tagname
 	
 	def getContent(self):
 		"Returns content of tag (everything between opener and endtag)."
-		
 		output = ""
 		
 		for c in self.childs:
-			output = c.pretiffy()
+			output = c.prettify()
 		
 		return output
 	
-	def pretiffy(self, depth = 0, separator = "  "):
+	def prettify(self, depth = 0, separator = "  "):
+		"Returns prettifyied tag with content. Same as toString()."
 		output = ""
 		
 		if self.__element != "":
@@ -362,14 +379,14 @@ class HTMLElement():
 			depth += 1
 		
 		if len(self.childs) != 0:
-			output += self.__pretiffy(self.childs, depth)
+			output += self.__prettify(self.childs, depth)
 		
 		if self.endtag != None:
 			output += self.endtag.tagToString() + "\n"
 		
 		return output
 
-	def __pretiffy(self, istack, depth = 0, separator = "  "):
+	def __prettify(self, istack, depth = 0, separator = "  "):
 		output = ""
 		strout = ""
 		
@@ -379,7 +396,7 @@ class HTMLElement():
 			output += el.tagToString() + "\n"
 			
 			if len(el.childs) > 0:
-				output += self.__pretiffy(el.childs, depth + 1, separator)
+				output += self.__prettify(el.childs, depth + 1, separator)
 			
 		for line in output.splitlines():
 			if line.strip() != "":
@@ -413,3 +430,168 @@ class HTMLElement():
 		return o
 
 
+def __raw_split(itxt):
+	"""
+	Parse HTML from text into array filled with tags end text.
+	
+	Source code is little bit unintutive, because it is simple parser machine.
+	For better understanding, look at; http://kitakitsune.org/images/field_parser.png
+	"""
+	echr = ""
+	buff = ["", "", "", ""]
+	content = ""
+	array = []
+	next_state = 0
+	inside_tag = False
+	
+	for c in itxt:
+		if next_state == 0: # content
+			if c == "<":
+				if len(content) > 0:
+					array.append(content)
+				content = c
+				next_state = 1
+				inside_tag = False
+			else:
+				content += c
+		elif next_state == 1: # html tag
+			if c == ">":
+				array.append(content + c)
+				content = ""
+				next_state = 0
+			elif c == "'" or c == '"':
+				echr = c
+				content += c
+				next_state = 2
+			elif c == "-" and buff[0] == "-" and buff[1] == "!" and buff[2] == "<":
+				if len(content[:-3]) > 0:
+					array.append(content[:-3])
+				content = content[-3:] + c
+				next_state = 3
+			else:
+				if c == "<": # jump back into tag instead of content
+					inside_tag = True
+				content += c
+		elif next_state == 2: # "" / ''
+			if c == echr and (buff[0] != "\\" or (buff[0] == "\\" and buff[1] == "\\")):
+				next_state = 1
+			content += c
+		elif next_state == 3: # html comments
+			if c == ">" and buff[0] == "-" and buff[1] == "-":
+				if inside_tag:
+					next_state = 1
+				else:
+					next_state = 0
+				inside_tag = False
+				
+				array.append(content + c)
+				content = ""
+			else:
+				content += c
+		
+		# rotate buffer
+		i = len(buff) - 1
+		while i > 0:
+			buff[i] = buff[i - 1]
+			
+			i -= 1
+		buff[0] = c
+	
+	if len(content) > 0:
+		array.append(content)
+	
+	return array
+
+def __repair_tags(raw_input):
+	"""
+	Repair tags with comments (<HT<!-- asad -->ML> is parsed to ["<HT", "<!-- asad -->", "ML>"]
+	and I need ["<HTML>", "<!-- asad -->"])
+	"""
+	ostack = []
+	
+	index = 0
+	while index < len(raw_input):
+		el = raw_input[index]
+		
+		if el.isComment():
+			if index > 0 and index < len(raw_input):
+				if raw_input[index - 1].tagToString().startswith("<") and raw_input[index + 1].tagToString().endswith(">"):
+					ostack[-1] = HTMLElement(ostack[-1].tagToString() + raw_input[index + 1].tagToString())
+					ostack.append(el)
+					index += 1
+					continue
+		
+		ostack.append(el)
+		
+		index += 1
+	
+	return ostack
+
+def __indexOfEndTag(istack):
+	"""
+	Go through istack and search endtag. Element at first index is considered as opening tag.
+	
+	Returns: index of end tag or 0 if not found.
+	"""
+	if len(istack) <= 0:
+		return 0
+	
+	if not istack[0].isOpeningTag():
+		return 0
+	
+	opener = istack[0]
+	cnt = 0
+	
+	index = 0
+	for el in istack[1:]:
+		if el.isOpeningTag() and (el.getTagName().lower() == opener.getTagName().lower()):
+			cnt += 1
+		elif el.isEndTagTo(opener):
+			if cnt == 0:
+				return index + 1
+			else:
+				cnt -= 1
+				
+		index += 1
+	
+	return 0
+
+def __parseDOM(istack):
+	"Recursively go through element array and create DOM."
+	ostack = []
+	end_tag_index = 0
+	
+	index = 0
+	while index < len(istack):
+		el = istack[index]
+		
+		end_tag_index = __indexOfEndTag(istack[index:]) # Check if this is pair tag
+		
+		if not el.isNonPairTag() and end_tag_index == 0 and not el.isEndTag():
+			el.isNonPairTag(True)
+		
+		if end_tag_index != 0:
+			el.childs = __parseDOM(istack[index + 1 : end_tag_index + index])
+			el.endtag = istack[end_tag_index + index] # Reference to endtag
+			el.openertag = el
+			ostack.append(el)
+			ostack.append(el.endtag)
+			index = end_tag_index + index
+		else:
+			ostack.append(el)
+		
+		index += 1
+	
+	return ostack
+
+def parseString(txt):
+	"Parse given string and return DOM from HTMLElements."
+	istack = []
+	
+	for el in __raw_split(txt):
+		istack.append(HTMLElement(el))
+	
+	container = HTMLElement()
+	container.childs = __parseDOM(__repair_tags(istack))
+	
+	return container 
