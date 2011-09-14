@@ -16,6 +16,7 @@ module dhtmlparser;
 
 import std.string;
 import std.array;
+import std.ascii;
 
 import quote_escaper;
 
@@ -310,15 +311,14 @@ class HTMLElement{
 		foreach(char c; params){
 			switch(next_state){
 				case 0: // key
-					// safer than list space, tab and all possible whitespaces in UTF
-					if ((""~c).strip() != "") // skip whitespaces
+					if (!isWhite(c)) // skip whitespaces
 						if (c == '=')
 							next_state = 1;
 						else
 							key ~= c;
 					break;
 				case 1: // value decisioner
-					if ((""~c).strip() != "")
+					if (!isWhite(c))
 						if (c == '\'' || c == '"'){
 							next_state = 3;
 							end_quote = c;
@@ -328,7 +328,7 @@ class HTMLElement{
 						}
 					break;
 				case 2: // one word parameter without quotes
-					if ((""~c).strip() == ""){
+					if (isWhite(c)){
 						next_state = 0;
 						this.params[key] = value;
 						key = "";
