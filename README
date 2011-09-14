@@ -91,7 +91,7 @@ DHTMLParser
 	HTMLElement("<tag>", ["param":"value"])
 		Tag (with or without <>) with parameters defined by dictionary.
 	
-	These constructors are usefull for creating documents:
+	These constructors are useful for creating documents:
 	
 		HTMLElement("tag", {"param":"value"}, [HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
 			With specified tag, params and childs.
@@ -105,5 +105,5 @@ DHTMLParser
 = Confused? =
 	If you don't understand how to use it, look at examples in ./examples/.
 	
-	If you still have any quoestion, you can write me email to: 
+	If you still have questions, you can write me an email to: 
 		bystrousak@kitakitsune.org
