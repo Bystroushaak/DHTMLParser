@@ -1,0 +1,6 @@
+Přidat rotate_buff i do D verze, upravit unescape
+
+Upravit konvenci funkcí?
+
+Opravit bug s <pre>.
+Předělat next_state na enum.
