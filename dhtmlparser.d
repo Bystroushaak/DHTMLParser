@@ -1,7 +1,7 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 0.7.2
+ * Version: 0.7.3
  * Date: 14.09.2011
  *
  * Authors: 
@@ -472,8 +472,10 @@ class HTMLElement{
 		string output;
 		
 		// for <pre> set 'pre' flag
-		if (this.getTagName().toLower() == "pre" && this.isOpeningTag())
+		if (this.getTagName().toLower() == "pre" && this.isOpeningTag()){
 			pre = true;
+			separator = "";
+		}
 
 		// filter blank lines if not inside <pre>
 		if (!pre)
@@ -488,8 +490,7 @@ class HTMLElement{
 				if (this.tagToString().strip() != "")
 					output ~= "\n";
 			}
-		if (pre)
-			separator = "";
+		
 		
 		// prettify childs
 		foreach(e; this.childs){
@@ -498,6 +499,11 @@ class HTMLElement{
 					output ~= separator;
 			
 			output ~= e.prettify(depth, separator, false, pre);
+		}
+		
+		// if this is element with depth = 0 (no recursion yet), return also endtag
+		if (last == true && this.isOpeningTag() && this.endtag !is null){
+			output ~= this.endtag.tagToString().strip();
 		}
 		
 		return output;
