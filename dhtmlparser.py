@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# DHTMLParser in python v1.0.0 (13.09.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+# DHTMLParser in python v1.1.0 (14.09.2011) by Bystroushaak (bystrousak@kitakitsune.org)
 # This work is licensed under a Creative Commons 3.0 Unported License
 # (http://creativecommons.org/licenses/by/3.0/cz/).
 # Created in Geany text editor.
@@ -10,6 +10,9 @@
     #
     
 def unescape(input, quote = '"'):
+	if len(input) < 2:
+		return input
+
 	output = ""
 	old = input[0]
 	older = ""
@@ -39,6 +42,15 @@ def escape(input, quote = '"'):
 	
 	return output
 
+
+def rotate_buff(buff):
+	"Rotate buffer (for each buff[i] = buff[i-1])"
+	i = len(buff) - 1
+	while i > 0:
+		buff[i] = buff[i - 1]
+		i -= 1
+
+	return buff
 
 
 class HTMLElement():
@@ -249,55 +261,63 @@ class HTMLElement():
 				self.__tagname = el
 				return
 
-	def __parseParams(self):
+	def __parseParams(self):	
+		# check if there are any parameters
 		if " " not in self.__element or "=" not in self.__element:
 			return
 		
 		# Remove '<' & '>'
-		params = self.__element[1:-1].strip()
-		
+		params = self.__element.strip()[1:-1].strip()
 		# Remove tagname
-		params = params[params.find(" "):].strip()
+		params = params[params.find(self.getTagName()) + len(self.getTagName()):].strip()
 		
-		tmp = params.split("=")
-		
-		# Parse parameters (it isn't so simple as it could look..)
-		li    = 0 # last index
-		key   = tmp[0]
-		
-		i = 1
-		while i < len(tmp) - 1:
-			li = tmp[i].rfind(" ")
+		# parser machine
+		next_state = 0
+		key = ""
+		value = ""
+		end_quote = ""
+		buff = ["", ""]
+		for c in params:
+			if next_state == 0: # key
+				if c.strip() != "": # safer than list space, tab and all possible whitespaces in UTF
+					if c == "=":
+						next_state = 1
+					else:
+						key += c
+			elif next_state == 1: # value decisioner
+				if c.strip() != "": # skip whitespaces
+					if c == "'" or c == '"':
+						next_state = 3
+						end_quote = c
+					else:
+						next_state = 2
+						value += c
+			elif next_state == 2: # one word parameter without quotes
+				if c.strip() == "":
+					next_state = 0
+					self.params[key] = value
+					key = ""
+					value = ""
+				else:
+					value += c
+			elif next_state == 3: # quoted string
+				if c == end_quote and (buff[0] != "\\" or (buff[0]) == "\\" and buff[1] == "\\"):
+					next_state = 0
+					self.params[key] = unescape(value, end_quote)
+					key = ""
+					value = ""
+					end_quote = ""
+				else:
+					value += c
+				
+			buff = rotate_buff(buff)
+			buff[0] = c
 			
-			if li > tmp[i].rfind("'"):
-				li = tmp[i].rfind("'")
-			
-			if li > tmp[i].rfind('"'):
-				li = tmp[i].rfind('"')
-			
-			self.params[key.strip()] = tmp[i][0:li + 1]
-			key = tmp[i][li + 1:]
-
-			i += 1 
-		self.params[key.strip()] = tmp[-1]
-		
-		# Read and unescape parameters
-		tmparam = ""
-		for key in self.params.keys():
-			pvalue = self.params[key].strip()
-			tmparam = pvalue
-			
-			if pvalue.startswith("'") or pvalue.startswith("\""):
-				tmparam = pvalue[1:]
-			if pvalue.endswith("'") or pvalue.endswith('"'):
-				if len(tmparam) > 1:
-					tmparam = tmparam[:-1]
-			
-			if pvalue.startswith("'") or pvalue.startswith('"'):
-				if len(tmparam) > 2:
-					tmparam = unescape(tmparam, pvalue[0])
-			
-			self.params[key] = tmparam
+		if key != "":
+			if end_quote != "" and value.strip() != "":
+				self.params[key] = unescape(value, end_quote)
+			else:
+				self.params[key] = value
 
 	#===========================================================================
 	#= Parsers =================================================================
@@ -429,7 +449,6 @@ class HTMLElement():
 		
 		return o
 
-
 def __raw_split(itxt):
 	"""
 	Parse HTML from text into array filled with tags end text.
@@ -490,11 +509,7 @@ def __raw_split(itxt):
 				content += c
 		
 		# rotate buffer
-		i = len(buff) - 1
-		while i > 0:
-			buff[i] = buff[i - 1]
-			
-			i -= 1
+		buff = rotate_buff(buff)
 		buff[0] = c
 	
 	if len(content) > 0:
