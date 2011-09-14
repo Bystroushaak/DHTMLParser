@@ -502,7 +502,7 @@ class HTMLElement{
 		}
 		
 		// if this is element with depth = 0 (no recursion yet), return also endtag
-		if (last == true && this.isOpeningTag() && this.endtag !is null){
+		if (last && this.isOpeningTag() && this.endtag !is null){
 			output ~= this.endtag.tagToString().strip();
 		}
 		
