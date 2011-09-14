@@ -1,13 +1,12 @@
-/* quote_escaper.d v1.1.0 (14.09.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+/* quote_escaper.d v1.1.1 (14.09.2011) by Bystroushaak (bystrousak@kitakitsune.org)
  * 
  * Module for (un)escaping quotes.
  * 
  * This work is licensed under a CC BY (http://creativecommons.org/licenses/by/3.0/)
 */
-
 public string unescape(string input, char quote = '"'){
-	if (input.length() < 2)
-		return;
+	if (input.length < 2)
+		return input;
 	
 	string output;
 	char old = input[0];
