@@ -1,7 +1,7 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 0.7.0
+ * Version: 0.7.1
  * Date: 14.09.2011
  *
  * Authors: 
@@ -270,7 +270,7 @@ class HTMLElement{
 		
 		// Check listed nonpair tags
 		foreach(string tagname; npt){
-			if (tagname == this.tagname){
+			if (tagname.toLower() == this.tagname.toLower()){
 				this.isnonpairtag = true;
 				break;
 			}
@@ -468,42 +468,39 @@ class HTMLElement{
 	 *
 	 * See_also: toString()
 	*/ 
-	public string prettify(uint depth = 0, string separator = "  "){
+	public string prettify(uint depth = 0, string separator = "  ", bool last = true, bool pre = false){
 		string output;
 		
-		if (this.element != ""){
-			output ~= this.tagToString() ~ "\n";
-			depth++;
+		// for <pre> set 'pre' flag
+		if (this.getTagName().toLower() == "pre" && this.isOpeningTag())
+			pre = true;
+
+		// filter blank lines if not inside <pre>
+		if (!pre)
+			output ~= this.tagToString().strip();
+		else
+			output ~= this.tagToString();
+		
+		// don't shift if inside container (containers have blank tagname)
+		if (this.getTagName() != "")
+			if (!pre){ // inside <pre> doesn't shift tags
+				depth++;
+				if (this.tagToString().strip() != "")
+					output ~= "\n";
+			}
+		if (pre)
+			separator = "";
+		
+		// prettify childs
+		foreach(e; this.childs){
+			if (e.tagToString().strip() != "")
+				for (int i = 0; i < depth; i++)
+					output ~= separator;
+			
+			output ~= e.prettify(depth, separator, false, pre);
 		}
-		
-		if (this.childs !is null)
-			output ~= prettify(this.childs, depth);
-		
-		if (this.endtag !is null)
-			output ~= this.endtag.tagToString() ~ "\n";
 		
 		return output;
-	}
-	
-	private string prettify(HTMLElement[] istack, uint depth = 0, string separator = "  "){
-		string output, strout;
-		
-		foreach(el; istack){
-			for (uint i = 0; i < depth; i++)
-				output ~= separator;
-			
-			output ~= el.tagToString() ~ "\n";
-
-			if (el.childs.length > 0)
-					output ~= prettify(el.childs, depth + 1, separator);
-		}
-		
-		// yay, kinky!
-		foreach(line; output.splitLines())
-			if (line.strip() != "")
-				strout ~= line ~ "\n";
-		
-		return strout;
 	}
 	//* /Getters ***************************************************************
 	

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# DHTMLParser in python v1.1.0 (14.09.2011) by Bystroushaak (bystrousak@kitakitsune.org)
-# This work is licensed under a Creative Commons 3.0 Unported License
-# (http://creativecommons.org/licenses/by/3.0/cz/).
-# Created in Geany text editor.
-#
-# Notes:
-    #
+"""
+DHTMLParser in python v1.2.0 (14.09.2011) by Bystroushaak (bystrousak@kitakitsune.org)
+
+This work is licensed under a Creative Commons 3.0 Unported License
+(http://creativecommons.org/licenses/by/3.0/cz/).
+
+Created in Geany text editor.
+"""
     
 def unescape(input, quote = '"'):
 	if len(input) < 2:
@@ -245,7 +245,7 @@ class HTMLElement():
 			"base"
 		]
 		
-		if self.__tagname in npt:
+		if self.__tagname.lower() in npt:
 			self.__isnonpairtag = True
 		
 	def __parseIsComment(self):
@@ -390,44 +390,40 @@ class HTMLElement():
 		
 		return output
 	
-	def prettify(self, depth = 0, separator = "  "):
+	def prettify(self, depth = 0, separator = "  ", last = True, pre = False):
 		"Returns prettifyied tag with content. Same as toString()."
 		output = ""
 		
-		if self.__element != "":
-			output += self.tagToString() + "\n"
-			depth += 1
+		# for <pre> set 'pre' flag
+		if self.getTagName().lower() == "pre" and self.isOpeningTag():
+			pre = True
 		
-		if len(self.childs) != 0:
-			output += self.__prettify(self.childs, depth)
+		# filter blank lines if not inside <pre>
+		if not pre:
+			output += self.tagToString().strip()
+		else:
+			output += self.tagToString()
 		
-		if self.endtag != None:
-			output += self.endtag.tagToString() + "\n"
+		# don't shift if inside container (containers have blank tagname)
+		if self.getTagName() != "":
+			if not pre: # inside <pre> doesn't shift tags
+				depth += 1
+				if self.tagToString().strip() != "":
+					output += "\n"
+		if pre:
+			separator = ""
+		
+		# prettify childs
+		for e in self.childs:
+			if e.tagToString().strip() != "":
+				output += (depth * separator)
+			output += e.prettify(depth, last = False, pre = pre)
 		
 		return output
 
-	def __prettify(self, istack, depth = 0, separator = "  "):
-		output = ""
-		strout = ""
-		
-		for el in istack:
-			output += depth * separator
-			
-			output += el.tagToString() + "\n"
-			
-			if len(el.childs) > 0:
-				output += self.__prettify(el.childs, depth + 1, separator)
-			
-		for line in output.splitlines():
-			if line.strip() != "":
-				strout += line + "\n"
-		
-		return strout
-	
 	#===========================================================================
 	#= Static methods ==========================================================
 	#===========================================================================
-	
 	def __closeElements(childs):
 		o = []
 		
