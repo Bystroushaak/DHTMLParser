@@ -1,7 +1,7 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 0.7.1
+ * Version: 0.7.2
  * Date: 14.09.2011
  *
  * Authors: 
@@ -59,7 +59,7 @@ class HTMLElement{
 		
 		this.parseIsNonPairTag();
 		
-		if (this.isOpeningTag())
+		if (this.element.indexOf("=") > 0)
 			this.parseParams();
 	}
 	
