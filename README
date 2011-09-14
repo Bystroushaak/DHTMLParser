@@ -29,7 +29,7 @@ DHTMLParser
 |
 |++ HTMLElement endtag
 |		In case this tag is an Opener (<p> for example), this variable holds a 
-		link to the closing element (</p>).
+|		link to the closing element (</p>).
 |
 |++ HTMLElement openertag
 |		Analogous to endtag.
