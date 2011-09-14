@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 0.6.1
- * Date: 13.09.2011
+ * Version: 0.7.0
+ * Date: 14.09.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -299,43 +299,67 @@ class HTMLElement{
 		
 		// Remove '<' & '>'
 		string params = this.element[1 .. $-1].strip();
-		
 		// Remove tagname
-		params = params[params.indexOf(" ") .. $].strip();
+		params = params[params.indexOf(this.getTagName()) + this.getTagName().length .. $].strip();
 		
-		string[] tmp = params.split("=");
-		
-		// Parse parameters (it isn't so simple as it could look..)
-		uint li; // last index
-		string value, key = tmp[0];
-		for(uint i = 1; i < tmp.length - 1; i++){
-			li = tmp[i].lastIndexOf(" ");
-			li = (li < tmp[i].lastIndexOf("'") ? li : tmp[i].lastIndexOf("'"));
-			li = (li < tmp[i].lastIndexOf("\"") ? li : tmp[i].lastIndexOf("\""));
+		// Parser machine
+		ubyte next_state = 0;
+		string key, value;
+		char end_quote = 0;
+		char buff[2] = [' ', ' '];
+		foreach(char c; params){
+			switch(next_state){
+				case 0: // key
+					// safer than list space, tab and all possible whitespaces in UTF
+					if ((""~c).strip() != "") // skip whitespaces
+						if (c == '=')
+							next_state = 1;
+						else
+							key ~= c;
+					break;
+				case 1: // value decisioner
+					if ((""~c).strip() != "")
+						if (c == '\'' || c == '"'){
+							next_state = 3;
+							end_quote = c;
+						}else{
+							next_state = 2;
+							value ~= c;
+						}
+					break;
+				case 2: // one word parameter without quotes
+					if ((""~c).strip() == ""){
+						next_state = 0;
+						this.params[key] = value;
+						key = "";
+						value = "";
+					}else
+						value ~= c;
+					break;
+				case 3: // quoted string
+					if (c == end_quote && (buff[0] != '\\' || (buff[0]) == '\\' && buff[1] == '\\')){
+						next_state = 0;
+						this.params[key] = quote_escaper.unescape(value, end_quote);
+						key = "";
+						value = "";
+						end_quote = 0;
+					}else
+						value ~= c;
+					break;
+				default: // every switch have to have default :S
+					break;
+			}
 			
-			this.params[key.strip()] = tmp[i][0 .. li + 1];
-			key = tmp[i][li + 1 .. $];
+			rotate_buff(buff);
+			buff[0] = c;
 		}
-		this.params[key.strip()] = tmp[$ - 1].strip();
 		
-		// Read and unescape parameters
-		string tmparam;
-		foreach(pkey, ref pvalue; this.params){
-			tmparam = cast(string) pvalue;
-			
-			if (pvalue.startsWith("'") || pvalue.startsWith("\""))
-				tmparam = cast(string) pvalue[1 .. $];
-			if (pvalue.endsWith("'") || pvalue.endsWith("\""))
-				if (tmparam.length > 1)
-					tmparam = tmparam[0 .. $ - 1];
-			
-			if (pvalue.startsWith("'") || pvalue.startsWith("\""))
-				if (tmparam.length > 2)
-					tmparam = quote_escaper.unescape(tmparam, pvalue[0]);
-			
-			pvalue = tmparam;
+		if (key != ""){
+			if (end_quote != 0 && value.strip() != "")
+				this.params[key] = quote_escaper.unescape(value, end_quote);
+			else
+				this.params[key] = value;
 		}
-		
 	}
 	//* /Parsers ***************************************************************
 	
@@ -363,6 +387,7 @@ class HTMLElement{
 	public bool isNonPairTag(){
 		return this.isnonpairtag;
 	}
+	
 
 	/**
 	 * True if HTMLElement is html comment.
@@ -525,6 +550,11 @@ class HTMLElement{
 	//* /Static methods ********************************************************
 }
 
+private void rotate_buff(T)(T[] buff){
+	for(int i = buff.length - 1; i > 0; i--){
+		buff[i] = buff[i - 1];
+	}
+}
 
 /**
  * Parse HTML from text into array filled with tags end text.
@@ -602,9 +632,7 @@ private string[] raw_split(string itxt){
 		}
 		
 		// rotate buffer
-		for(int i = buff.length - 1; i > 0; i--){
-			buff[i] = buff[i - 1];
-		}
+		rotate_buff(buff);
 		buff[0] = c;
 		
 	}
