@@ -1,145 +1,108 @@
-D Module for parsing HTML in similar way like BeautifulSoup.
+DHTMLParser 
 
-Version: 0.6.0
-Date:    08.08.2011
-Authors: Bystroushaak (bystrousak@kitakitsune.org)
-Website: https://github.com/Bystroushaak/DHTMLParser
+= What is it? =
+	DHTMLParser is lightview parser created for one purpose - quick parsing 
+	selected information, when you know where to look.
+	
+	It is very useful when you writing own API for some page, or checker (script
+	that is checking something on the web and alerts when checked information 
+	was changed).
+	
+	If you want, you can also create HTML(XML) documents much more easier than 
+	from string.
 
-class HTMLElement;
-    Container for parsed html elements.
+= How it works? =
+	Module have only one important function - parseString(), which takes string
+	and returns DOM (Document Object Model) created from HTMLElement objects.
+	
+	DOM is encapsulated in container - blank HTMLElement, which holds whole DOM
+	in .childs property.
 
-    HTMLElement[] childs;
-        Nested tags. Encapsulation would complicate whole class much more then public property.
+= HTMLElement =
+|
+|++ HTMLElement[] childs
+|		If element have any childs, they are stored in this property.
+|
+|++ string[string] params
+|		If element have any parameters, you will find them here.
+|
+|++ HTMLElement endtag
+|		In case that this tag is Opener (<p> for example), in this variable is 
+|		link to closing element (</p>).
+|
+|++ HTMLElement openertag
+|		Similar as previous.
+|
+|-- HTMLElement[] find(string tag_name, string[string] params = null, function fn = null)
+|		One of the most importants methods, which allow queries to DOM.
+|
+|		Lets say, that you want every link from page - 'dom.find("a")' will 
+|		return array of links.
+|
+|		You can also specify parameters, or define lambda function which will 
+|		find whatever you want.
+|
+|-- bool isTag()
+|		Returns true, if element is tag (closed in <>). Comments aren't tags!
+|
+|-- bool isOpeningTag()
+|
+|-- bool isEndTag()
+|		Returns true if is closing tag. 
+|
+|-- bool isEndTagTo(HTMLElement opener)
+|		Returns true if this element is end tag </tagname> for given element.
+|
+|-- bool isNonPairTag()
+|		Returns true, if is nonpair tag (<br /> for example).
+|
+|-- void isNonPairTag(bool isnonpairtag)
+|		Setter which allows set that this element is nonpair. 
+|
+|-- bool isComment()
+|		Returns true if element is HTML comment (<!-- -->).
+|
+|-- string toString()
+|		String representation of element, same as prettify().
+|
+|-- string prettify()
+|		Returns prettified HTML output with childs (full document).
+|
+|-- string tagToString()
+|		Returns string representation if tag, without childs.
+|
+|-- string getTagName()
+|		Tagname - <a href="bla"> returns "a".
+|
+`-- string getContent()
+		Childs to string.
 
-    string[string] params;
-        Tag parameters.
+= Creating DOM =
+	If you want to create DOM from HTMLElements, you can use one of theese 
+	constructors:
 
-    this();
-        Useful as container for document (root of the DOM).
+	HTMLElement()
+		Blank element.
+	
+	HTMLElement("<tag>")
+		From string containing tag (only one tag).
+	
+	HTMLElement("<tag>", ["param":"value"])
+		Tag (with or without <>) with parameters defined by dictionary.
+	
+	These constructors are usefull for creating documents:
+	
+		HTMLElement("tag", {"param":"value"}, [HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+			With specified tag, params and childs.
+			
+		HTMLElement("tag", [HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+			With specified tag and childs.
 
-    this(string str);
-        Standard constructor used when parsing document from string.
+		HTMLElement([HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+			With speicifed chidls. Usefull for containers.
 
-    this(string tagname, string[string] params);
-        Special constructor used when creating DOM.
-
-    this(string tagname, string[string] params, HTMLElement[] childs);
-        This constructor is used for creating DOM from elements.
-
-        Example:
-
-         HTMLElement e = new HTMLElement([
-           new HTMLElement("<val>",[
-             new HTMLElement("xe")
-           ])
-         ]);
-
-         writeln(e);
-
-        Writes;
-
-         <val>
-          xe
-         </val>
-
-    this(string tagname, HTMLElement[] childs);
-        Same as previous, but with less options.
-
-    this(HTMLElement[] childs);
-        Same as previous, but with less options.
-
-    HTMLElement[] find(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null);
-        Simple search engine.
-
-        Finds elements and subelements which match patterns given by parameters. Allows searching defined by users lambda function.
-
-        Params:
-        string tag_name 	Name of searched element.
-        string[string] params 	Associative array containing searched parameters
-        bool function(HTMLElement) fn 	User defined function. Function takes elements and returns true if wanted.
-
-        Examples:
-
-         import std.stdio;
-
-         HTMLElement dom = parseString("<div id='xe' a='b'>obsah xe divu</div><div id='xu' a='b'>obsah xu divu</div>");
-
-         writeln(dom);
-
-         // writes:
-         <div a="b" id="xe">
-           obsah xe divu
-         </div>
-         <div a="b" id="xu">
-           obsah xu divu
-         </div>
-
-        Search by parameters;
-
-         writeln(dom.find("div", ["id":"xe"]))
-
-         // writes:
-         [<div a="b" id="xe">
-           obsah xe divu
-         </div>
-         ]
-
-        Search by lambda function;
-
-         writeln(dom.find(null, null, function(HTMLElement e){return ("id" in e.params && e.params["id"] == "xu");}));
-
-         // writes:
-         [<div a="b" id="xu">
-           obsah xu divu
-         </div>
-         ]
-
-        Returns:
-        Array of matching elements.
-
-    bool isTag();
-        True if element is tag (not content).
-
-    bool isOpeningTag();
-        True if is opening tag.
-
-    bool isEndTag();
-        True if HTMLElement is end tag (/tag).
-
-    bool isEndTagTo(HTMLElement opener);
-        Returns true, if this element is endtag to opener.
-
-    bool isNonPairTag();
-        True if HTMLElement is nonpair tag (br for example).
-
-    bool isComment();
-        True if HTMLElement is html comment.
-
-    string toString();
-        Returns pretiffyied tag with content.
-
-        See Also:
-        pretiffy()
-
-    string tagToString();
-        Returns tag (with parameters), without content or endtag.
-
-    string getTagName();
-        Returns tag name.
-
-    string getContent();
-        Returns content of tag (everything between opener and endtag).
-
-    string pretiffy(uint depth = 0, string separator = " ");
-        Returns pretiffyied tag with content. Same as toString().
-
-        See Also:
-        toString()
-
-static HTMLElement parseString(ref string txt);
-    Parse given string and return DOM from HTMLElements.
-
-    See Also:
-    HTMLElement
-
-Page generated by Ddoc. This work is licensed under a CC BY (http://creativecommons.org/licenses/by/3.0/) 
+= Confused? =
+	If you don't understant how to use it, look at examples in ./examples/.
+	
+	If you still have any quoestion, you can write me email to: 
+		bystrousak@kitakitsune.org
