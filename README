@@ -99,10 +99,10 @@ DHTMLParser
 			With specified tag and childs.
 
 		HTMLElement([HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
-			With speicifed chidls. Usefull for containers.
+			With speicifed childs. Useful for containers.
 
 = Confused? =
-	If you don't understant how to use it, look at examples in ./examples/.
+	If you don't understand how to use it, look at examples in ./examples/.
 	
 	If you still have any quoestion, you can write me email to: 
 		bystrousak@kitakitsune.org
