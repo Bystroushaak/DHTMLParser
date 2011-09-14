@@ -271,7 +271,7 @@ class HTMLElement():
 		# Remove tagname
 		params = params[params.find(self.getTagName()) + len(self.getTagName()):].strip()
 		
-		# parser machine
+		# Parser machine
 		next_state = 0
 		key = ""
 		value = ""
