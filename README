@@ -1,75 +1,76 @@
 DHTMLParser 
 
 = What is it? =
-	DHTMLParser is lightview parser created for one purpose - quick parsing 
-	selected information, when you know where to look.
+	DHTMLParser is a lightweight parser created for one purpose - quick parsing 
+	of selected information, when you know where to look.
 	
-	It is very useful when you writing own API for some page, or checker (script
-	that is checking something on the web and alerts when checked information 
-	was changed).
+	It can be very useful when you're writing your own API for a page, or a 
+	checker (a script that is continuously checking something on the web and 
+	alerts you when the information being checked has been changed).
 	
-	If you want, you can also create HTML(XML) documents much more easier than 
-	from string.
+	If you want, you can also create HTML/XML documents much more easily than 
+	from a string.
 
 = How it works? =
-	Module have only one important function - parseString(), which takes string
-	and returns DOM (Document Object Model) created from HTMLElement objects.
+	The module has just one, important function - parseString(), which takes
+	a string and returns a DOM (Document Object Model) made of HTMLElement 
+	objects.
 	
-	DOM is encapsulated in container - blank HTMLElement, which holds whole DOM
-	in .childs property.
+	The DOM is encapsulated in a container - a blank HTMLElement that holds
+	the whole DOM in its .childs property.
 
 = HTMLElement =
 |
 |++ HTMLElement[] childs
-|		If element have any childs, they are stored in this property.
+|		If the element has children, they are stored in this property.
 |
 |++ string[string] params
-|		If element have any parameters, you will find them here.
+|		If the element has parametres, you will find them here.
 |
 |++ HTMLElement endtag
-|		In case that this tag is Opener (<p> for example), in this variable is 
-|		link to closing element (</p>).
+|		In case this tag is an Opener (<p> for example), this variable holds a 
+		link to the closing element (</p>).
 |
 |++ HTMLElement openertag
-|		Similar as previous.
+|		Analogous to endtag.
 |
 |-- HTMLElement[] find(string tag_name, string[string] params = null, function fn = null)
-|		One of the most importants methods, which allow queries to DOM.
+|		One of the most important methods, which handles DOM queries.
 |
-|		Lets say, that you want every link from page - 'dom.find("a")' will 
-|		return array of links.
+|		Lets say that you want each link in a page - 'dom.find("a")' will 
+|		return an array of links.
 |
-|		You can also specify parameters, or define lambda function which will 
+|		You can also specify parametres or define a lambda function which will 
 |		find whatever you want.
 |
 |-- bool isTag()
-|		Returns true, if element is tag (closed in <>). Comments aren't tags!
+|		Returns true if the element is a tag (closed in <>). Comments aren't tags!
 |
 |-- bool isOpeningTag()
 |
 |-- bool isEndTag()
-|		Returns true if is closing tag. 
+|		Returns true if closing tag. 
 |
 |-- bool isEndTagTo(HTMLElement opener)
-|		Returns true if this element is end tag </tagname> for given element.
+|		Returns true if this element is an end tag </tagname> for given element.
 |
 |-- bool isNonPairTag()
-|		Returns true, if is nonpair tag (<br /> for example).
+|		Returns true if nonpair tag (<br /> for example).
 |
 |-- void isNonPairTag(bool isnonpairtag)
-|		Setter which allows set that this element is nonpair. 
+|		Setter which allows setting whether this element is nonpair. 
 |
 |-- bool isComment()
-|		Returns true if element is HTML comment (<!-- -->).
+|		Returns true if this element is an HTML comment (<!-- -->).
 |
 |-- string toString()
-|		String representation of element, same as prettify().
+|		String representation of this element, same as prettify().
 |
 |-- string prettify()
 |		Returns prettified HTML output with childs (full document).
 |
 |-- string tagToString()
-|		Returns string representation if tag, without childs.
+|		Returns a string representation if tag, without childs.
 |
 |-- string getTagName()
 |		Tagname - <a href="bla"> returns "a".
@@ -99,7 +100,7 @@ DHTMLParser
 			With specified tag and childs.
 
 		HTMLElement([HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
-			With speicifed childs. Useful for containers.
+			With speicifed childs. Usefull for containers.
 
 = Confused? =
 	If you don't understand how to use it, look at examples in ./examples/.
