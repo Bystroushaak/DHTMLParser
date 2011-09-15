@@ -47,6 +47,7 @@ DHTMLParser
 |		Returns true if the element is a tag (closed in <>). Comments aren't tags!
 |
 |-- bool isOpeningTag()
+|		Returns true if element have .endtag (is closed).
 |
 |-- bool isEndTag()
 |		Returns true if closing tag. 
@@ -93,13 +94,13 @@ DHTMLParser
 	
 	These constructors are useful for creating documents:
 	
-		HTMLElement("tag", {"param":"value"}, [HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+		HTMLElement("tag", ["param":"value"], [new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
 			With specified tag, params and childs.
 			
-		HTMLElement("tag", [HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+		HTMLElement("tag", [new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
 			With specified tag and childs.
 
-		HTMLElement([HTMLElement("<tag1>"), HTMLElement("<tag2>"), ...])
+		HTMLElement([new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
 			With speicifed childs. Usefull for containers.
 
 = Confused? =
