@@ -1,7 +1,7 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.0.0
+ * Version: 1.0.1
  * Date: 16.09.2011
  *
  * Authors: 
@@ -180,9 +180,6 @@ class HTMLElement{
 	public HTMLElement[] find(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
 		HTMLElement[] output;
 
-		if (this.isComment() || this.isNonPairTag() || this.isEndTag())
-			return null;
-		
 		if (fn != null)
 			if (fn(this))
 				output ~= this;
