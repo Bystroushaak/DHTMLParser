@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 0.7.3
- * Date: 14.09.2011
+ * Version: 1.0.0
+ * Date: 16.09.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -468,42 +468,57 @@ class HTMLElement{
 	 *
 	 * See_also: toString()
 	*/ 
-	public string prettify(uint depth = 0, string separator = "  ", bool last = true, bool pre = false){
+	public string prettify(uint depth = 0, string separator = "  ", bool last = true, bool pre = false, bool inline = false){
 		string output;
+		
+		if (this.getTagName() != "" && this.tagToString().strip() == "")
+			return "";
+		
+		// if not inside <pre> and not inline, shift tag to the right
+		if (!pre && !inline)
+			for (int i = 0; i < depth; i++)
+				output ~= separator;
 		
 		// for <pre> set 'pre' flag
 		if (this.getTagName().toLower() == "pre" && this.isOpeningTag()){
 			pre = true;
 			separator = "";
 		}
+		
+		output ~= this.tagToString();
 
-		// filter blank lines if not inside <pre>
-		if (!pre)
-			output ~= this.tagToString().strip();
-		else
-			output ~= this.tagToString();
+		// detect if inline
+		bool is_inline = inline; // is_inline shows if inline was set by detection, or as parameter
+		foreach(c; this.childs)
+			if (!(c.isTag() || c.isComment()))
+				if (c.tagToString().strip().length != 0)
+					inline = true;
 		
 		// don't shift if inside container (containers have blank tagname)
+		uint original_depth = depth;
 		if (this.getTagName() != "")
-			if (!pre){ // inside <pre> doesn't shift tags
+			if (!pre && !inline){ // inside <pre> doesn't shift tags
 				depth++;
 				if (this.tagToString().strip() != "")
 					output ~= "\n";
 			}
 		
-		
 		// prettify childs
 		foreach(e; this.childs){
-			if (e.tagToString().strip() != "")
-				for (int i = 0; i < depth; i++)
-					output ~= separator;
-			
-			output ~= e.prettify(depth, separator, false, pre);
+			if (!e.isEndTag())
+				output ~= e.prettify(depth, separator, false, pre, inline);
 		}
 		
-		// if this is element with depth = 0 (no recursion yet), return also endtag
-		if (last && this.isOpeningTag() && this.endtag !is null){
+		// endtag
+		if (this.endtag !is null){
+			if (!pre && !inline)
+				for (int i = 0; i < original_depth; i++)
+					output ~= separator;
+			
 			output ~= this.endtag.tagToString().strip();
+			
+			if (!is_inline)
+				output ~= "\n";
 		}
 		
 		return output;
@@ -720,7 +735,8 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 			ostack ~= el.endtag;
 			index = end_tag_index + index;
 		}else
-			ostack ~= el;
+			if (!el.isEndTag())
+				ostack ~= el;
 	}
 
 	return ostack;
@@ -733,6 +749,8 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 */
 public static HTMLElement parseString(ref string txt){
 	HTMLElement[] istack;
+	
+	txt = txt.replace("\xef\xbb\xbf", ""); // remove UTF BOM (prettify fails if not)
 	
 	// Convert array of strings to HTMLElements
 	foreach(string el; raw_split(txt)){
