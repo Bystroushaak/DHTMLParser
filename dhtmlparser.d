@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.0.1
- * Date: 16.09.2011
+ * Version: 1.1.0
+ * Date: 19.09.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -532,6 +532,25 @@ class HTMLElement{
 			this.endtag = null;
 			this.childs = null;
 		}
+	}
+	
+	/* Replace element.
+	 * 
+	 * Useful when you don't want change manually all references to object.
+	*/
+	public void replaceWith(HTMLElement el){
+		this.childs = el.childs;
+		this.params = el.params;
+		this.endtag = el.endtag;
+		this.openertag = el.openertag;
+		
+		this.tagname = el.getTagName();
+		this.element = el.tagToString();
+		
+		this.istag = el.isTag();
+		this.isendtag = el.isEndTag();
+		this.iscomment = el.isComment();
+		this.isnonpairtag = el.isNonPairTag();
 	}
 	
 	//* /Setters ***************************************************************

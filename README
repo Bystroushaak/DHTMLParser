@@ -70,6 +70,10 @@ DHTMLParser
 |-- string prettify()
 |		Returns prettified HTML output with childs (full document).
 |
+|-- void replaceWith(HTMLElement el)
+|		Replace element.
+|		Useful when you don't want change manually all references to object.
+|
 |-- string tagToString()
 |		Returns a string representation if tag, without childs.
 |
