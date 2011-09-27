@@ -59,7 +59,7 @@ class HTMLElement{
 		
 		this.parseIsNonPairTag();
 		
-		if (this.element.indexOf("=") > 0)
+		if (this.istag && this.isOpeningTag() && this.element.indexOf("=") > 0)
 			this.parseParams();
 	}
 	
