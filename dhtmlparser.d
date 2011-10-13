@@ -766,7 +766,9 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 public static HTMLElement parseString(ref string txt){
 	HTMLElement[] istack;
 	
-	txt = txt.replace("\xef\xbb\xbf", ""); // remove UTF BOM (prettify fails if not)
+	// remove UTF BOM (prettify fails if not)
+	if (txt.startsWith("\xef\xbb\xbf") > 0)         // utf8
+		txt = txt.replace("\xef\xbb\xbf", "");
 	
 	// Convert array of strings to HTMLElements
 	foreach(string el; raw_split(txt)){
