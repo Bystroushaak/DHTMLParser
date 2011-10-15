@@ -763,7 +763,7 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
  *
  * See_also: HTMLElement
 */
-public static HTMLElement parseString(ref string txt){
+public static HTMLElement parseString(string txt){
 	HTMLElement[] istack;
 	
 	// remove UTF BOM (prettify fails if not)
