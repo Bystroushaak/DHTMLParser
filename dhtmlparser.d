@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.1.0
- * Date: 19.09.2011
+ * Version: 1.1.1
+ * Date: 22.10.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -767,8 +767,8 @@ public static HTMLElement parseString(string txt){
 	HTMLElement[] istack;
 	
 	// remove UTF BOM (prettify fails if not)
-	if (txt.startsWith("\xef\xbb\xbf") > 0)         // utf8
-		txt = txt.replace("\xef\xbb\xbf", "");
+	if (txt.startsWith("\xef\xbb\xbf") && txt.length > 3) // utf8
+		txt = txt[3 .. $];
 	
 	// Convert array of strings to HTMLElements
 	foreach(string el; raw_split(txt)){
