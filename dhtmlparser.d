@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.1.1
- * Date: 22.10.2011
+ * Version: 1.1.2
+ * Date: 27.10.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -377,6 +377,10 @@ class HTMLElement{
 	public bool isEndTag(){
 		return this.isendtag;
 	}
+	
+	public void isEndTag(bool is_end_tag){
+		this.isendtag = is_end_tag;
+	}
 
 	/**
 	 * True if HTMLElement is nonpair tag (br for example).
@@ -742,6 +746,9 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 
 		if (!el.isNonPairTag && end_tag_index == 0 && !el.isEndTag())
 			el.isNonPairTag(true);
+			
+		if (el.isComment()) // hmm, strange thing - multiline comments containing HTML tags are considered as endtags, this fixes it..
+			el.isEndTag = false;
 
 		if (end_tag_index != 0){
 			el.childs = parseDOM(istack[index + 1 .. end_tag_index + index]);
