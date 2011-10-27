@@ -1,7 +1,7 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.1.4
+ * Version: 1.1.5
  * Date: 27.10.2011
  *
  * Authors: 
@@ -458,6 +458,10 @@ class HTMLElement{
 		
 		foreach(c; this.childs)
 			output ~= c.prettify();
+		
+		// remove \n from end, prettyfy is nice, but sometimes you need just value
+		if (output.endsWith("\n"))
+			output = output[0 .. $ - 1];
 		
 		return output;
 	}
