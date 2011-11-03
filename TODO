@@ -1,1 +1,3 @@
 Předělat next_state na enum.
+Detect user based bug param="asd"", which cause bad parsing (simple replacing "" for " is not good enough).
+Repair prettify.
