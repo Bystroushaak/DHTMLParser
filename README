@@ -35,7 +35,8 @@ DHTMLParser
 |		Analogous to endtag.
 |
 |-- HTMLElement[] find(string tag_name, string[string] params = null, function fn = null)
-|		Same as findAll, but doesn't returns endtags. You can always get them from .endtag property.§
+|		Same as findAll, but doesn't returns endtags. You can always get them 
+|		from .endtag property.
 |
 |-- HTMLElement[] findAll(string tag_name, string[string] params = null, function fn = null)
 |		One of the most important methods, which handles DOM queries.

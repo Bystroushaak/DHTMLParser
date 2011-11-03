@@ -1,7 +1,7 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.2.0
+ * Version: 1.2.1
  * Date: 03.11.2011
  *
  * Authors: 
@@ -228,7 +228,7 @@ class HTMLElement{
 			
 		HTMLElement tmp[];
 		foreach(el; this.childs){
-			tmp = el.find(tag_name, params, fn);
+			tmp = el.findAll(tag_name, params, fn);
 
 			if (tmp.length > 0)
 				output ~= tmp;
@@ -610,7 +610,7 @@ class HTMLElement{
 			else if (end_tag_too && e is end_tag && end_tag !is null)
 				this.childs = this.childs.remove(i);
 			else
-				e.removeChild(child);
+				e.removeChild(child, end_tag_too);
 		}
 	}
 	
