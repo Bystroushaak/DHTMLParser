@@ -35,6 +35,9 @@ DHTMLParser
 |		Analogous to endtag.
 |
 |-- HTMLElement[] find(string tag_name, string[string] params = null, function fn = null)
+|		Same as findAll, but doesn't returns endtags. You can always get them from .endtag property.§
+|
+|-- HTMLElement[] findAll(string tag_name, string[string] params = null, function fn = null)
 |		One of the most important methods, which handles DOM queries.
 |
 |		Lets say that you want each link in a page - 'dom.find("a")' will 
@@ -72,7 +75,14 @@ DHTMLParser
 |
 |-- void replaceWith(HTMLElement el)
 |		Replace element.
+|
 |		Useful when you don't want change manually all references to object.
+|
+|-- void removeChild(HTMLElement child, bool end_tag_too = true)
+|		Removes given subelement. Element is specified by reference, not by
+|		value, so it always removes only one element!
+|
+|		end_tag_too specifies if endtag shoud be removed too. Default true.
 |
 |-- string tagToString()
 |		Returns a string representation if tag, without childs.

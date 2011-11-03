@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.1.5
- * Date: 27.10.2011
+ * Version: 1.2.0
+ * Date: 03.11.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -17,6 +17,7 @@ module dhtmlparser;
 import std.string;
 import std.array;
 import std.ascii;
+import std.algorithm : remove;
 
 import quote_escaper;
 
@@ -128,6 +129,26 @@ class HTMLElement{
 	 * Finders *****************************************************************
 	 ************************************************************************ */
 
+
+	/**
+	 * Same as findAll, but returns tags without endtags. You can always get them
+	 * from .endtag property..
+	 * 
+	 * See_also:
+	 *    findAll
+	*/ 
+	public HTMLElement[] find(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
+		HTMLElement[] output;
+		HTMLElement[] dom = this.findAll(tag_name, params, fn);
+		
+		// remove endtags
+		foreach(e; dom)
+			if (!e.isEndTag())
+				output ~= e;
+				
+		return output;
+	}
+	
 	/**
 	 * Simple search engine.
 	 *
@@ -178,8 +199,8 @@ class HTMLElement{
 	 * ---
 	 *
 	 * Returns: Array of matching elements.
-	*/ 
-	public HTMLElement[] find(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
+	*/
+	public HTMLElement[] findAll(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
 		HTMLElement[] output;
 
 		if (fn != null)
@@ -540,7 +561,8 @@ class HTMLElement{
 		}
 	}
 	
-	/* Replace element.
+	/** 
+	 * Replace element.
 	 * 
 	 * Useful when you don't want change manually all references to object.
 	*/
@@ -557,6 +579,39 @@ class HTMLElement{
 		this.isendtag = el.isEndTag();
 		this.iscomment = el.isComment();
 		this.isnonpairtag = el.isNonPairTag();
+	}
+	
+	/**
+	 * Remove subelement (child) specified by reference.
+	 * 
+	 * This can't be used for removing subelements by value! If you want do such
+	 * thing, do:
+	 * 
+	 * ----------------
+	 * foreach(e; dom.find("value"))
+	 *     dom.removeChild(e);
+	 * ----------------
+	 * 
+	 * Params:
+	 *   child = child which will be removed from dom (compared by reference)
+	 *   end_tag_too = remove end tag too - default true
+	*/
+	void removeChild(HTMLElement child, bool end_tag_too = true){
+		if (this.childs.length <= 0)
+			return;
+		
+		HTMLElement end_tag;
+		if (end_tag_too)
+			end_tag = child.endtag;
+		
+		foreach(int i, HTMLElement e; this.childs){
+			if (e is child)
+				this.childs = this.childs.remove(i);
+			else if (end_tag_too && e is end_tag && end_tag !is null)
+				this.childs = this.childs.remove(i);
+			else
+				e.removeChild(child);
+		}
 	}
 	
 	//* /Setters ***************************************************************
