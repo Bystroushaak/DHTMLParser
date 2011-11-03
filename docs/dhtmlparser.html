@@ -7,10 +7,10 @@
 D Module for parsing HTML in similar way like BeautifulSoup.
 <br><br>
 <b>Version:</b><br>
-0.6.0
+1.2.0
 <br><br>
 <b>Date:</b><br>
-08.08.2011
+03.11.2011
 
 <br><br>
 <b>Authors:</b><br>
@@ -82,6 +82,15 @@ Github; https://github.com/Bystroushaak/DHTMLParser
 </dd>
 <dt><big>HTMLElement[] <u>find</u>(string <i>tag_name</i>, string[string] <i>params</i> = null, bool function(HTMLElement) <i>fn</i> = null);
 </big></dt>
+<dd>Same as findAll, but returns tags without endtags. You can always get them
+ from .endtag property..
+<br><br>
+<b>See Also:</b><br>
+findAll<br><br>
+
+</dd>
+<dt><big>HTMLElement[] <u>findAll</u>(string <i>tag_name</i>, string[string] <i>params</i> = null, bool function(HTMLElement) <i>fn</i> = null);
+</big></dt>
 <dd>Simple search engine.
 <br><br>
 Finds elements and subelements which match patterns given by parameters.
@@ -112,7 +121,7 @@ Finds elements and subelements which match patterns given by parameters.
  &lt;/div&gt;
 </pre>
  Search by parameters;
-<pre class="d_code"> writeln(dom.<u>find</u>(<font color=red>"div"</font>, [<font color=red>"id"</font>:<font color=red>"xe"</font>]))
+<pre class="d_code"> writeln(dom.find(<font color=red>"div"</font>, [<font color=red>"id"</font>:<font color=red>"xe"</font>]))
 
  <font color=green>// writes:
 </font> [&lt;div a=<font color=red>"b"</font> id=<font color=red>"xe"</font>&gt;
@@ -121,7 +130,7 @@ Finds elements and subelements which match patterns given by parameters.
  ]
 </pre>
  Search by lambda function;
-<pre class="d_code"> writeln(dom.<u>find</u>(<font color=blue>null</font>, <font color=blue>null</font>, <font color=blue>function</font>(HTMLElement e){<font color=blue>return</font> (<font color=red>"id"</font> <font color=blue>in</font> e.<i>params</i> &amp;&amp; e.<i>params</i>[<font color=red>"id"</font>] == <font color=red>"xu"</font>);}));
+<pre class="d_code"> writeln(dom.find(<font color=blue>null</font>, <font color=blue>null</font>, <font color=blue>function</font>(HTMLElement e){<font color=blue>return</font> (<font color=red>"id"</font> <font color=blue>in</font> e.<i>params</i> &amp;&amp; e.<i>params</i>[<font color=red>"id"</font>] == <font color=red>"xu"</font>);}));
 
  <font color=green>// writes:
 </font> [&lt;div a=<font color=red>"b"</font> id=<font color=red>"xu"</font>&gt;
@@ -140,19 +149,9 @@ Array of matching elements.<br><br>
 <dd>True if element is tag (not content).<br><br>
 
 </dd>
-<dt><big>bool <u>isOpeningTag</u>();
-</big></dt>
-<dd>True if is opening tag.<br><br>
-
-</dd>
 <dt><big>bool <u>isEndTag</u>();
 </big></dt>
 <dd>True if HTMLElement is end tag (/tag).<br><br>
-
-</dd>
-<dt><big>bool <u>isEndTagTo</u>(HTMLElement <i>opener</i>);
-</big></dt>
-<dd>Returns <b>true</b>, if this element is endtag to <i>opener</i>.<br><br>
 
 </dd>
 <dt><big>bool <u>isNonPairTag</u>();
@@ -165,12 +164,22 @@ Array of matching elements.<br><br>
 <dd>True if HTMLElement is html comment.<br><br>
 
 </dd>
+<dt><big>bool <u>isOpeningTag</u>();
+</big></dt>
+<dd>True if is opening tag.<br><br>
+
+</dd>
+<dt><big>bool <u>isEndTagTo</u>(HTMLElement <i>opener</i>);
+</big></dt>
+<dd>Returns <b>true</b>, if this element is endtag to <i>opener</i>.<br><br>
+
+</dd>
 <dt><big>string <u>toString</u>();
 </big></dt>
-<dd>Returns pretiffyied tag with content.
+<dd>Returns prettifyied tag with content.
 <br><br>
 <b>See Also:</b><br>
-pretiffy()<br><br>
+prettify()<br><br>
 
 </dd>
 <dt><big>string <u>tagToString</u>();
@@ -188,17 +197,45 @@ pretiffy()<br><br>
 <dd>Returns content of tag (everything between opener and endtag).<br><br>
 
 </dd>
-<dt><big>string <u>pretiffy</u>(uint <i>depth</i> = 0, string <i>separator</i> = "  ");
+<dt><big>string <u>prettify</u>(uint <i>depth</i> = 0, string <i>separator</i> = "  ", bool <i>last</i> = true, bool <i>pre</i> = false, bool <i>inline</i> = false);
 </big></dt>
-<dd>Returns pretiffyied tag with content. Same as toString().
+<dd>Returns prettifyied tag with content. Same as toString().
 <br><br>
 <b>See Also:</b><br>
 toString()<br><br>
 
 </dd>
+<dt><big>void <u>replaceWith</u>(HTMLElement <i>el</i>);
+</big></dt>
+<dd>Replace element.
+<br><br>
+Useful when you don't want change manually all references to object.<br><br>
+
+</dd>
+<dt><big>void <u>removeChild</u>(HTMLElement <i>child</i>, bool <i>end_tag_too</i> = true);
+</big></dt>
+<dd>Remove subelement (<i>child</i>) specified by reference.
+<br><br>
+This can't be used for removing subelements by value! If you want do such
+ thing, do:
+<br><br>
+
+<pre class="d_code"> <font color=blue>foreach</font>(e; dom.find(<font color=red>"value"</font>))
+     dom.<u>removeChild</u>(e);
+</pre>
+
+<br><br>
+<b>Params:</b><br>
+<table><tr><td>HTMLElement <i>child</i></td>
+<td><i>child</i> which will be removed from dom (compared by reference)</td></tr>
+<tr><td>bool <i>end_tag_too</i></td>
+<td>remove end tag too - default <b>true</b></td></tr>
+</table><br>
+
+</dd>
 </dl>
 </dd>
-<dt><big>static HTMLElement <u>parseString</u>(ref string <i>txt</i>);
+<dt><big>static HTMLElement <u>parseString</u>(string <i>txt</i>);
 </big></dt>
 <dd>Parse given string and return DOM from HTMLElements.
 <br><br>
