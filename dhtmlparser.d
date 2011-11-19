@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.2.1
- * Date: 03.11.2011
+ * Version: 1.3.0
+ * Date:    19.11.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -150,7 +150,26 @@ class HTMLElement{
 	}
 	
 	/**
-	 * Simple search engine.
+	 * Same as findAllB, but returns tags without endtags. You can always get them
+	 * from .endtag property..
+	 * 
+	 * See_also:
+	 *    findAll
+	*/ 
+	public HTMLElement[] findB(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
+		HTMLElement[] output;
+		HTMLElement[] dom = this.findAllB(tag_name, params, fn);
+		
+		// remove endtags
+		foreach(e; dom)
+			if (!e.isEndTag())
+				output ~= e;
+				
+		return output;
+	}
+	
+	/**
+	 * Simple search engine (depth-first algorithm - http://en.wikipedia.org/wiki/Depth-first_search).
 	 *
 	 * Finds elements and subelements which match patterns given by parameters.
 	 * Allows searching defined by users lambda function.
@@ -203,28 +222,8 @@ class HTMLElement{
 	public HTMLElement[] findAll(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
 		HTMLElement[] output;
 
-		if (fn != null)
-			if (fn(this))
-				output ~= this;
-
-		if (this.tagname == tag_name && tagname != "" && tagname != null){
-			if (params == null)
-				output ~= this;
-			else{
-				bool tmp_stat = true;
-				foreach(key, val; params){
-					if (key !in this.params)
-						tmp_stat = false;
-					else if (params[key] != this.params[key])
-						tmp_stat = false;
-				}
-				if (this.params.length == 0)
-					tmp_stat = false;
-					
-				if (tmp_stat)
-					output ~= this;
-			}
-		}
+		if (this.isAlmostEqual(tag_name, params, fn))
+			output ~= this;
 			
 		HTMLElement tmp[];
 		foreach(el; this.childs){
@@ -232,6 +231,40 @@ class HTMLElement{
 
 			if (tmp.length > 0)
 				output ~= tmp;
+		}
+		
+		return output;
+	}
+
+	/**
+	 * Simple search engine using Breadth-first algorithm - http://en.wikipedia.org/wiki/Breadth-first_search
+	 *
+	 * Finds elements and subelements which match patterns given by parameters.
+	 * Allows searching defined by users lambda function.
+	 *
+	 * Params:
+	 *     tag_name = Name of searched element.
+	 *     params   = Associative array containing searched parameters
+	 *     fn       = User defined function. Function takes elements and returns true if wanted.
+	 *
+	 * Returns: Array of matching elements.
+	 * 
+	 * See_also:
+	 *     findAll
+	*/
+	public HTMLElement[] findAllB(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null, bool _first = true){
+		HTMLElement[] output;
+		
+		if (this.isAlmostEqual(tag_name, params, fn))
+			output ~= this;
+		
+		HTMLElement[] breadth_search = this.childs;
+		foreach(el; breadth_search){
+			if (el.isAlmostEqual(tag_name, params, fn))
+				output ~= el;
+			
+			if (el.childs.length > 0)
+				breadth_search ~= el.childs;
 		}
 		
 		return output;
@@ -440,15 +473,6 @@ class HTMLElement{
 	} 
 
 	/**
-	 * Returns prettifyied tag with content.
-	 *
-	 * See_also: prettify()
-	*/ 
-	public string toString(){
-		return this.prettify();
-	}
-
-	/**
 	 * Returns tag (with parameters), without content or endtag.
 	*/ 
 	public string tagToString(){
@@ -548,6 +572,52 @@ class HTMLElement{
 		return output;
 	}
 	//* /Getters ***************************************************************
+	
+	/* *************************************************************************
+	 * Operators ***************************************************************
+	 **************************************************************************/
+	
+	/**
+	 * Returns prettifyied tag with content.
+	 *
+	 * See_also: prettify()
+	*/ 
+	public string toString(){
+		return this.prettify();
+	}
+	
+	/**
+	 * Compare element with given tagname, params and/or by lambda function.
+	 * 
+	 * Lambda function is same as in .find().
+	*/ 
+	public bool isAlmostEqual(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null){
+		// search by lambda function
+		if (fn != null)
+			if (fn(this))
+				return true;
+		
+		// compare tagname
+		if (this.tagname == tag_name && this.tagname != "" && this.tagname != null){
+			// compare pamaterers
+			if (params == null || params.length == 0)
+				return true;
+			else if (this.params.length > 0){
+				foreach(key, val; params){
+					if (key !in this.params)
+						return false;
+					else if (params[key] != this.params[key])
+						return false;
+				}
+				
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	//* /Operators *************************************************************
 	
 	/* *************************************************************************
 	 * Setters *****************************************************************
@@ -868,5 +938,20 @@ unittest{
 	assert(divXe.isTag() == true);
 	assert(divXe.isTag() == divXu.isTag());
 	
-	assert(divXe.getContent() == "obsah xe divu\n");
+	assert(divXe.getContent() == "obsah xe divu");
+	
+	dom = parseString(`
+	<div id=first>
+		First div.
+		<div id=first.subdiv>
+			Subdiv in first div.
+		</div>
+	</div>
+	<div id=second>
+		Second.
+	</div>
+	`);
+	// find/findB unittest
+	assert(dom.find("div")[1].getContent().strip() == "Subdiv in first div.");
+	assert(dom.findB("div")[1].getContent().strip() == "Second.");
 }
