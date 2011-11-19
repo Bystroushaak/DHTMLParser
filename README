@@ -35,8 +35,11 @@ DHTMLParser
 |		Analogous to endtag.
 |
 |-- HTMLElement[] find(string tag_name, string[string] params = null, function fn = null)
-|		Same as findAll, but doesn't returns endtags. You can always get them 
+|		Same as findAll(), but doesn't returns endtags. You can always get them 
 |		from .endtag property.
+|
+|-- HTMLElement[] findB(string tag_name, string[string] params = null, function fn = null)
+|		Same as find(), but using Breadth-first search algorithm.
 |
 |-- HTMLElement[] findAll(string tag_name, string[string] params = null, function fn = null)
 |		One of the most important methods, which handles DOM queries.
@@ -46,6 +49,14 @@ DHTMLParser
 |
 |		You can also specify parametres or define a lambda function which will 
 |		find whatever you want.
+|
+|		This method is using depth-first algorithm. For bread-first, see findAllB()
+|		and findB().
+|
+|-- HTMLelement findAllB(string tag_name, string[string] params = null, function fn = null)
+|		Same as findAll(), but using Breadth-first search algorithm.
+|
+|		See http://en.wikipedia.org/wiki/Breadth-first_search for details.
 |
 |-- bool isTag()
 |		Returns true if the element is a tag (closed in <>). Comments aren't tags!
@@ -67,6 +78,11 @@ DHTMLParser
 |
 |-- bool isComment()
 |		Returns true if this element is an HTML comment (<!-- -->).
+|
+|-- bool isAlmostEqual(string tag_name, string[string] params = null, bool function(HTMLElement) fn = null)
+|		Compare element with given tagname, params and/or by lambda function.
+|
+|		Lambda function is same as in .find().
 |
 |-- string toString()
 |		String representation of this element, same as prettify().

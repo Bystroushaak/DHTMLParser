@@ -7,10 +7,10 @@
 D Module for parsing HTML in similar way like BeautifulSoup.
 <br><br>
 <b>Version:</b><br>
-1.2.0
+1.3.1
 <br><br>
 <b>Date:</b><br>
-03.11.2011
+19.11.2011
 
 <br><br>
 <b>Authors:</b><br>
@@ -89,9 +89,18 @@ Github; https://github.com/Bystroushaak/DHTMLParser
 findAll<br><br>
 
 </dd>
+<dt><big>HTMLElement[] <u>findB</u>(string <i>tag_name</i>, string[string] <i>params</i> = null, bool function(HTMLElement) <i>fn</i> = null);
+</big></dt>
+<dd>Same as findAllB, but returns tags without endtags. You can always get them
+ from .endtag property..
+<br><br>
+<b>See Also:</b><br>
+findAll<br><br>
+
+</dd>
 <dt><big>HTMLElement[] <u>findAll</u>(string <i>tag_name</i>, string[string] <i>params</i> = null, bool function(HTMLElement) <i>fn</i> = null);
 </big></dt>
-<dd>Simple search engine.
+<dd>Simple search engine (depth-first algorithm - http://en.wikipedia.org/wiki/Depth-first_search).
 <br><br>
 Finds elements and subelements which match patterns given by parameters.
  Allows searching defined by users lambda function.
@@ -144,6 +153,30 @@ Finds elements and subelements which match patterns given by parameters.
 Array of matching elements.<br><br>
 
 </dd>
+<dt><big>HTMLElement[] <u>findAllB</u>(string <i>tag_name</i>, string[string] <i>params</i> = null, bool function(HTMLElement) <i>fn</i> = null, bool <i>_first</i> = true);
+</big></dt>
+<dd>Simple search engine using Breadth-first algorithm - http://en.wikipedia.org/wiki/Breadth-first_search
+<br><br>
+Finds elements and subelements which match patterns given by parameters.
+ Allows searching defined by users lambda function.
+
+<br><br>
+<b>Params:</b><br>
+<table><tr><td>string <i>tag_name</i></td>
+<td>Name of searched element.</td></tr>
+<tr><td>string[string] <i>params</i></td>
+<td>Associative array containing searched parameters</td></tr>
+<tr><td>bool function(HTMLElement) <i>fn</i></td>
+<td>User defined function. Function takes elements and returns <b>true</b> if wanted.</td></tr>
+</table><br>
+<b>Returns:</b><br>
+Array of matching elements.
+
+<br><br>
+<b>See Also:</b><br>
+findAll<br><br>
+
+</dd>
 <dt><big>bool <u>isTag</u>();
 </big></dt>
 <dd>True if element is tag (not content).<br><br>
@@ -174,14 +207,6 @@ Array of matching elements.<br><br>
 <dd>Returns <b>true</b>, if this element is endtag to <i>opener</i>.<br><br>
 
 </dd>
-<dt><big>string <u>toString</u>();
-</big></dt>
-<dd>Returns prettifyied tag with content.
-<br><br>
-<b>See Also:</b><br>
-prettify()<br><br>
-
-</dd>
 <dt><big>string <u>tagToString</u>();
 </big></dt>
 <dd>Returns tag (with parameters), without content or endtag.<br><br>
@@ -203,6 +228,21 @@ prettify()<br><br>
 <br><br>
 <b>See Also:</b><br>
 toString()<br><br>
+
+</dd>
+<dt><big>string <u>toString</u>();
+</big></dt>
+<dd>Returns prettifyied tag with content.
+<br><br>
+<b>See Also:</b><br>
+prettify()<br><br>
+
+</dd>
+<dt><big>bool <u>isAlmostEqual</u>(string <i>tag_name</i>, string[string] <i>params</i> = null, bool function(HTMLElement) <i>fn</i> = null);
+</big></dt>
+<dd>Compare element with given tagname, <i>params</i> and/or by lambda function.
+<br><br>
+Lambda function is same as in .find().<br><br>
 
 </dd>
 <dt><big>void <u>replaceWith</u>(HTMLElement <i>el</i>);
