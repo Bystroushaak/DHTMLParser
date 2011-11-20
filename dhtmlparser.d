@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.3.1
- * Date:    19.11.2011
+ * Version: 1.3.2
+ * Date:    20.11.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -116,6 +116,14 @@ class HTMLElement{
 	}
 	/// Same as previous, but with less options.
 	this(string tagname, HTMLElement childs[]){
+		if (tagname.strip().length != 0){
+			// containers with childs are automatically considered as tags
+			if (!tagname.startsWith("<"))
+				tagname = "<" ~ tagname;
+			if (!tagname.endsWith(">"))
+				tagname ~= ">";
+		}
+		
 		this(tagname);
 		this.childs ~= HTMLElement.closeElements(childs);
 	}
@@ -128,8 +136,6 @@ class HTMLElement{
 	/* *************************************************************************
 	 * Finders *****************************************************************
 	 ************************************************************************ */
-
-
 	/**
 	 * Same as findAll, but returns tags without endtags. You can always get them
 	 * from .endtag property..
