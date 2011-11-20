@@ -119,7 +119,7 @@ class HTMLElement{
 		if (tagname.strip().length != 0){
 			// containers with childs are automatically considered as tags
 			if (!tagname.startsWith("<"))
-				tagname = "<" ~ tagname;
+				tagname = "<" ~ tagname;
 			if (!tagname.endsWith(">"))
 				tagname ~= ">";
 		}
