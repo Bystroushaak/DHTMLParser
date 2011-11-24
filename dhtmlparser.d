@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.3.2
- * Date:    20.11.2011
+ * Version: 1.4.0
+ * Date:    24.11.2011
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -511,7 +511,7 @@ class HTMLElement{
 			if (! c.isEndTag())
 				output ~= c.prettify();
 		
-		// remove \n from end, prettyfy is nice, but sometimes you need just value
+		// remove \n from end, prettify is nice, but sometimes you need just value
 		if (output.endsWith("\n"))
 			output = output[0 .. $ - 1];
 		
@@ -519,7 +519,7 @@ class HTMLElement{
 	}
 
 	/**
-	 * Returns prettifyied tag with content. Same as toString().
+	 * Returns prettified tag with content.
 	 *
 	 * See_also: toString()
 	*/ 
@@ -585,12 +585,29 @@ class HTMLElement{
 	 **************************************************************************/
 	
 	/**
-	 * Returns prettifyied tag with content.
+	 * Returns original string, which was parsed to DOM.
+	 *
+	 * If you want prettified string, try .prettify()
 	 *
 	 * See_also: prettify()
 	*/ 
 	public string toString(){
-		return this.prettify();
+		string output;
+		
+		if (! this.childs.empty){
+			output ~= this.element;
+			
+			foreach(c; this.childs){
+				output ~= c.toString();
+			}
+			
+			if (this.endtag !is null)
+				output ~= this.endtag.tagToString();
+		}else if (!this.isEndTag()){
+			output ~= this.tagToString();
+		}
+		
+		return output;
 	}
 	
 	/**
@@ -928,15 +945,22 @@ unittest{
 	);
 	HTMLElement divXe, divXu;
 
+	// find test
 	divXe = dom.find("div", ["id":"xe"])[0];
 	divXu = dom.find("div", ["id":"xu"])[0];
 	
 	assert(divXe.tagToString() == `<div a="b" id="xe">`);
 	assert(divXu.tagToString() == `<div a="b" id="xu">`);
 	
+	// unit test for toString (must returns original string)
+	assert(divXe.toString() == `<div id='xe' a='b'>obsah xe divu</div>`);
+	assert(divXu.toString() == `<div id='xu' a='b'>obsah xu divu</div>`);
+	
+	// getTagName() test
 	assert(divXe.getTagName() == "div");
 	assert(divXe.getTagName() == divXu.getTagName());
 	
+	// isComment() test
 	assert(divXe.isComment() == false);
 	assert(divXe.isComment() == divXu.isComment());
 	
@@ -947,6 +971,7 @@ unittest{
 	
 	assert(divXe.getContent() == "obsah xe divu");
 	
+	// find()/findB() test
 	dom = parseString(`
 	<div id=first>
 		First div.
