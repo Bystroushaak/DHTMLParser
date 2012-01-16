@@ -1,3 +1,16 @@
-Předělat next_state na enum.
+Rewrite next_stat to use enum.
 Detect user based bug param="asd"", which cause bad parsing (simple replacing "" for " is not good enough).
+
 Repair prettify.
+
+Impelement Xpath;
+	http://cs.wikipedia.org/wiki/XPath
+	http://www.w3schools.com/xpath/
+
+Add parameter for HTML entities expanse.
+
+Free the algorithm
+	- UML model
+	- pseudocode
+	
+	- implementation in D, Python, Rebol, Lua, etc..
