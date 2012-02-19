@@ -597,15 +597,13 @@ class HTMLElement{
 		if (! this.childs.empty){
 			output ~= this.element;
 			
-			foreach(c; this.childs){
+			foreach(c; this.childs)
 				output ~= c.toString();
-			}
 			
 			if (this.endtag !is null)
 				output ~= this.endtag.tagToString();
-		}else if (!this.isEndTag()){
+		}else if (!this.isEndTag())
 			output ~= this.tagToString();
-		}
 		
 		return output;
 	}
@@ -740,9 +738,8 @@ class HTMLElement{
 }
 
 private void rotate_buff(T)(T[] buff){
-	for(int i = buff.length - 1; i > 0; i--){
+	for(int i = buff.length - 1; i > 0; i--)
 		buff[i] = buff[i - 1];
-	}
 }
 
 /**
@@ -751,7 +748,7 @@ private void rotate_buff(T)(T[] buff){
  * Source code is little bit unintutive, because it is simple parser machine.
  * For better understanding, look at; http://kitakitsune.org/images/field_parser.png
 */ 
-private string[] raw_split(string itxt){
+private string[] rawSplit(string itxt){
 	char echr;
 	char[4] buff;
 	string content;
@@ -768,9 +765,8 @@ private string[] raw_split(string itxt){
 					content = "" ~ c;
 					next_state = 1;
 					inside_tag = false;
-				}else{
+				}else
 					content ~= c;
-				}
 
 				break;
 			case 1: // html tag
@@ -790,14 +786,15 @@ private string[] raw_split(string itxt){
 				}else{
 					if (c == '<') // jump back into tag instead of content
 						inside_tag = true;
+					
 					content ~= c;
 				}
 				
 				break;
 			case 2: // "" / ''
-				if (c == echr && (buff[0] != '\\' || (buff[0] == '\\' && buff[1] == '\\'))){
+				if (c == echr && (buff[0] != '\\' || (buff[0] == '\\' && buff[1] == '\\')))
 					next_state = 1;
-				}
+				
 				content ~= c;
 				
 				break;
@@ -811,9 +808,8 @@ private string[] raw_split(string itxt){
 					
 					array ~= content ~ c;
 					content = "";
-				}else{
+				}else
 					content ~= c;
-				}
 				
 				break;
 			default: // switch without default is deprecated :S
@@ -896,12 +892,12 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 		end_tag_index = indexOfEndTag(istack[index .. $]); // Check if this is pair tag
 
 		if (!el.isNonPairTag && end_tag_index == 0 && !el.isEndTag())
-			el.isNonPairTag(true);
+			el.isNonPairTag = true;
 
 		if (end_tag_index != 0){
 			el.childs = parseDOM(istack[index + 1 .. end_tag_index + index]);
 			el.endtag = istack[end_tag_index + index]; // Reference to endtag
-			el.endtag.openertag = el; // Reference to openertag
+			el.endtag.openertag = el;                  // This is endtags openertag
 			ostack ~= el;
 			ostack ~= el.endtag;
 			index = end_tag_index + index;
@@ -926,9 +922,8 @@ public static HTMLElement parseString(string txt){
 		txt = txt[3 .. $];
 	
 	// Convert array of strings to HTMLElements
-	foreach(string el; raw_split(txt)){
+	foreach(string el; rawSplit(txt))
 		istack ~= new HTMLElement(el);
-	}
 
 	HTMLElement container = new HTMLElement("");
 	container.childs ~= parseDOM(repairTags(istack));
