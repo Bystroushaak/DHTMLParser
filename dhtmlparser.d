@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.4.0
- * Date:    24.11.2011
+ * Version: 1.4.1
+ * Date:    03.03.2012
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -307,8 +307,10 @@ class HTMLElement{
 		// Tags endings with /> are nonpair
 		if (this.element.startsWith("<") && this.element.endsWith(">")){
 			foreach(char c; this.element){
-				if (c == '>' && last == '/')
+				if (c == '>' && last == '/'){
 					this.isnonpairtag = true;
+					return;
+				}
 				if (c > 32)
 					last = c;
 			}
@@ -621,7 +623,7 @@ class HTMLElement{
 		
 		// compare tagname
 		if (this.tagname == tag_name && this.tagname != "" && this.tagname != null){
-			// compare pamaterers
+			// compare parameters
 			if (params == null || params.length == 0)
 				return true;
 			else if (this.params.length > 0){
@@ -918,7 +920,7 @@ public static HTMLElement parseString(string txt){
 	HTMLElement[] istack;
 	
 	// remove UTF BOM (prettify fails if not)
-	if (txt.startsWith("\xef\xbb\xbf") && txt.length > 3) // utf8
+	if (txt.length > 3 && txt.startsWith("\xef\xbb\xbf")) // utf8
 		txt = txt[3 .. $];
 	
 	// Convert array of strings to HTMLElements
