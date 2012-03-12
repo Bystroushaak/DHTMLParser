@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.4.1
- * Date:    03.03.2012
+ * Version: 1.5.0
+ * Date:    12.03.2012
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -64,6 +64,8 @@ class HTMLElement{
 		
 		if (this.istag && !this.isendtag && this.element.indexOf("=") > 0)
 			this.parseParams();
+		
+		this.tagname = this.tagname.toLower();
 	}
 	
 	/**
@@ -88,6 +90,8 @@ class HTMLElement{
 			output ~= " " ~ key ~ "=\"" ~ quote_escaper.escape(val, '"') ~ "\"";
 			
 		this(output ~ nonpair ~ ">");
+		
+		this.tagname = this.tagname.toLower();
 	}
 	
 	/**
@@ -391,7 +395,7 @@ class HTMLElement{
 				case 2: // one word parameter without quotes
 					if (isWhite(c)){
 						next_state = 0;
-						this.params[key] = value;
+						this.params[key.toLower()] = value;
 						key = "";
 						value = "";
 					}else
@@ -400,7 +404,7 @@ class HTMLElement{
 				case 3: // quoted string
 					if (c == end_quote && (buff[0] != '\\' || (buff[0]) == '\\' && buff[1] == '\\')){
 						next_state = 0;
-						this.params[key] = quote_escaper.unescape(value, end_quote);
+						this.params[key.toLower()] = quote_escaper.unescape(value, end_quote);
 						key = "";
 						value = "";
 						end_quote = 0;
@@ -417,9 +421,9 @@ class HTMLElement{
 		
 		if (key != ""){
 			if (end_quote != 0 && value.strip() != "")
-				this.params[key] = quote_escaper.unescape(value, end_quote);
+				this.params[key.toLower()] = quote_escaper.unescape(value, end_quote);
 			else
-				this.params[key] = value;
+				this.params[key.toLower()] = value;
 		}
 	}
 	//* /Parsers ***************************************************************
@@ -937,7 +941,7 @@ public static HTMLElement parseString(string txt){
 
 unittest{
 	HTMLElement dom = parseString(
-		"<div id='xe' a='b'>obsah xe divu</div>
+		"<div Id='xe' a='b'>obsah xe divu</div>  <!-- Id, not id :) -->
 		 <div id='xu' a='b'>obsah xu divu</div>"
 	);
 	HTMLElement divXe, divXu;
@@ -950,7 +954,7 @@ unittest{
 	assert(divXu.tagToString() == `<div a="b" id="xu">`);
 	
 	// unit test for toString (must returns original string)
-	assert(divXe.toString() == `<div id='xe' a='b'>obsah xe divu</div>`);
+	assert(divXe.toString() == `<div Id='xe' a='b'>obsah xe divu</div>`);
 	assert(divXu.toString() == `<div id='xu' a='b'>obsah xu divu</div>`);
 	
 	// getTagName() test
@@ -983,4 +987,5 @@ unittest{
 	// find/findB unittest
 	assert(dom.find("div")[1].getContent().strip() == "Subdiv in first div.");
 	assert(dom.findB("div")[1].getContent().strip() == "Second.");
+	
 }
