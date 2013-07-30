@@ -1,8 +1,8 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.5.0
- * Date:    12.03.2012
+ * Version: 1.5.1
+ * Date:    30.07.2013
  *
  * Authors: 
  *     Bystroushaak (bystrousak@kitakitsune.org)
@@ -596,8 +596,8 @@ class HTMLElement{
 	 * If you want prettified string, try .prettify()
 	 *
 	 * See_also: prettify()
-	*/ 
-	public string toString(){
+	*/
+	public override string toString(){
 		string output;
 		
 		if (! this.childs.empty){
@@ -744,7 +744,7 @@ class HTMLElement{
 }
 
 private void rotate_buff(T)(T[] buff){
-	for(int i = buff.length - 1; i > 0; i--)
+	for(ulong i = buff.length - 1; i > 0; i--)
 		buff[i] = buff[i - 1];
 }
 
@@ -841,7 +841,8 @@ private string[] rawSplit(string itxt){
 private HTMLElement[] repairTags(HTMLElement[] raw_input){
 	HTMLElement[] ostack;
 	
-	foreach(uint index, HTMLElement el; raw_input){
+	uint index;
+	foreach(HTMLElement el; raw_input){
 		if (el.isComment()){
 			if (index > 0 && index < raw_input.length){
 				if (raw_input[index - 1].tagToString().startsWith("<") && raw_input[index + 1].tagToString().endsWith(">")){
@@ -894,7 +895,8 @@ private HTMLElement[] parseDOM(HTMLElement[] istack){
 	uint end_tag_index;
 	HTMLElement[] ostack;
 	
-	foreach(uint index, HTMLElement el; istack){
+	uint index;
+	foreach(HTMLElement el; istack){
 		end_tag_index = indexOfEndTag(istack[index .. $]); // Check if this is pair tag
 
 		if (!el.isNonPairTag && end_tag_index == 0 && !el.isEndTag())
