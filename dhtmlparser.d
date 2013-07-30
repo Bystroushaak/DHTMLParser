@@ -1,7 +1,7 @@
 /**
  * D Module for parsing HTML in similar way like BeautifulSoup.
  *
- * Version: 1.5.1
+ * Version: 1.5.2
  * Date:    30.07.2013
  *
  * Authors: 
@@ -744,7 +744,7 @@ class HTMLElement{
 }
 
 private void rotate_buff(T)(T[] buff){
-	for(ulong i = buff.length - 1; i > 0; i--)
+	for(int i = cast(int) buff.length - 1; i > 0; i--)
 		buff[i] = buff[i - 1];
 }
 
