@@ -269,7 +269,8 @@ class HTMLElement{
 			output ~= this;
 		
 		HTMLElement[] breadth_search = this.childs;
-		foreach(el; breadth_search){
+		for (size_t index; index < breadth_search.length; index += 1){
+			auto el = breadth_search[index];
 			if (el.isAlmostEqual(tag_name, params, fn))
 				output ~= el;
 			
@@ -892,26 +893,29 @@ private uint indexOfEndTag(HTMLElement[] istack){
  * Recursively go through element array and create DOM.
 */ 
 private HTMLElement[] parseDOM(HTMLElement[] istack){
-	uint end_tag_index;
+	uint end_tag_offset;
 	HTMLElement[] ostack;
 	
-	uint index;
-	foreach(HTMLElement el; istack){
-		end_tag_index = indexOfEndTag(istack[index .. $]); // Check if this is pair tag
+	for (uint index; index < istack.length;) {
+		HTMLElement el = istack[index];
+		end_tag_offset = indexOfEndTag(istack[index .. $]); // Check if this is pair tag
 
-		if (!el.isNonPairTag && end_tag_index == 0 && !el.isEndTag())
+		if (!el.isNonPairTag && end_tag_offset == 0 && !el.isEndTag())
 			el.isNonPairTag = true;
 
-		if (end_tag_index != 0){
-			el.childs = parseDOM(istack[index + 1 .. end_tag_index + index]);
-			el.endtag = istack[end_tag_index + index]; // Reference to endtag
+		if (end_tag_offset != 0){
+			el.childs = parseDOM(istack[index + 1 .. end_tag_offset + index]);
+			el.endtag = istack[end_tag_offset + index]; // Reference to endtag
 			el.endtag.openertag = el;                  // This is endtags openertag
 			ostack ~= el;
 			ostack ~= el.endtag;
-			index = end_tag_index + index;
-		}else
-			if (!el.isEndTag())
+			index = end_tag_offset + index;
+		} else {
+			if (!el.isEndTag()) {
 				ostack ~= el;
+			}
+			index += 1;
+		}
 	}
 
 	return ostack;
