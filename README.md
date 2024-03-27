@@ -1,25 +1,31 @@
-DHTMLParser 
+# Deprecated
 
-= What is it? =
-	DHTMLParser is a lightweight parser created for one purpose - quick parsing 
-	of selected information, when you know where to look.
-	
-	It can be very useful when you're writing your own API for a page, or a 
-	checker (a script that is continuously checking something on the web and 
-	alerts you when the information being checked has been changed).
-	
-	If you want, you can also create HTML/XML documents much more easily than 
-	from a string.
+This repository was created long time ago when I was learning D and it is unmaintained and abandoned for more than a decade now. Use it at your own risk.
 
-= How it works? =
-	The module has just one, important function - parseString(), which takes
-	a string and returns a DOM (Document Object Model) made of HTMLElement 
-	objects.
-	
-	The DOM is encapsulated in a container - a blank HTMLElement that holds
-	the whole DOM in its .childs property.
+# DHTMLParser 
 
-= HTMLElement =
+## What is it?
+DHTMLParser is a lightweight parser created for one purpose - quick parsing 
+of selected information, when you know where to look.
+
+It can be very useful when you're writing your own API for a page, or a 
+checker (a script that is continuously checking something on the web and 
+alerts you when the information being checked has been changed).
+
+If you want, you can also create HTML/XML documents much more easily than 
+from a string.
+
+## How it works?
+The module has just one, important function - parseString(), which takes
+a string and returns a DOM (Document Object Model) made of HTMLElement 
+objects.
+
+The DOM is encapsulated in a container - a blank HTMLElement that holds
+the whole DOM in its .childs property.
+
+## HTMLElement
+
+```
 |
 |++ HTMLElement[] childs
 |		If the element has children, they are stored in this property.
@@ -109,33 +115,51 @@ DHTMLParser
 |
 `-- string getContent()
 		Childs to string.
+```
 
-= Creating DOM =
-	If you want to create DOM from HTMLElements, you can use one of theese 
-	constructors:
+## Creating DOM
+If you want to create DOM from HTMLElements, you can use one of theese 
+constructors:
 
-	HTMLElement()
-		Blank element.
-	
-	HTMLElement("<tag>")
-		From string containing tag (only one tag).
-	
-	HTMLElement("<tag>", ["param":"value"])
-		Tag (with or without <>) with parameters defined by dictionary.
-	
-	These constructors are useful for creating documents:
-	
-		HTMLElement("tag", ["param":"value"], [new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
-			With specified tag, params and childs.
-			
-		HTMLElement("tag", [new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
-			With specified tag and childs.
+```D
+HTMLElement()
+```
 
-		HTMLElement([new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
-			With speicifed childs. Usefull for containers.
+Blank element.
 
-= Confused? =
-	If you don't understand how to use it, look at examples in ./examples/.
+```D
+HTMLElement("<tag>")
+```
+
+From string containing tag (only one tag).
+
+```D
+HTMLElement("<tag>", ["param":"value"])
+```
+
+Tag (with or without <>) with parameters defined by dictionary.
+
+These constructors are useful for creating documents:
+
+```D
+HTMLElement("tag", ["param":"value"], [new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
+```
+
+With specified tag, params and childs.
+		
+```D
+HTMLElement("tag", [new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
+```
+
+With specified tag and childs.
+
+```
+HTMLElement([new HTMLElement("<tag1>"), new HTMLElement("<tag2>"), ...])
+```
+
+With speicifed childs. Usefull for containers.
+
+## Confused?
+If you don't understand how to use it, look at examples in ./examples/.
 	
-	If you still have questions, you can write me an email to: 
-		bystrousak@kitakitsune.org
+
